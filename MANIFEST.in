@@ -1,0 +1,13 @@
+# monitor files
+graft monitor
+
+# daemon files
+graft daemon
+
+# app files
+graft app
+
+# daemon files
+graft fbshow
+
+global-exclude *.py[co]

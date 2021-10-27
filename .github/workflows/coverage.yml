@@ -1,0 +1,39 @@
+---
+name: IRIS Coverage
+on:
+  push:
+  pull_request:
+    type: [opened, synchronized, re-opened]
+    branches:
+      - develop
+
+jobs:
+  lint:
+    name: Iris Coverage
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+
+      - name: Setup python environment
+        run: |
+          sudo apt update
+          xargs -a apt-packages.txt sudo apt install -y
+          sudo ln -fs /usr/bin/python3.8 /usr/bin/python3
+          sudo -H python3 -m pip install --upgrade pip
+          sudo -H python3 -m pip install -r requirements.txt --use-feature=2020-resolver
+
+      - name: Install coverage dependencies.
+        run: sudo -H python3 -m pip install coverage coverage-badge
+
+      - name: Run lint directive
+        run: |
+          make coverage
+          coverage-badge -o docs/img/coverage.svg
+
+      - name: Upload coverage artefacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: coverage badge
+          path: docs/img/coverage.svg
+          retention-days: 5

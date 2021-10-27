@@ -1,0 +1,39 @@
+version: "2.9"
+services:
+  rmq:
+    container_name: rmq
+    image: rabbitmq:3.9-management
+    volumes:
+      - "../rabbitmq/:/etc/rabbitmq/"
+
+  monitor:
+    container_name: monitor
+    depends_on:
+      - rmq 
+    build:
+      context: ../../
+      dockerfile: docker/dev/Dockerfile
+    volumes:
+      - ../../:/app
+    networks:
+      - x11
+    environment:
+      - DISPLAY=novnc:0.0
+      - SDL_VIDEODRIVER=x11
+      - SDL_NOMOUSE=1
+      - SNAP=/app
+      - SNAP_DATA=/app/monitor/logs
+      - SNAP_COMMON=/app/instance
+      - AWS_TT=aws/things/$ID/telemetry/
+      - RABBITMQ_HOST=rmq
+
+  hwi:
+    container: hwi
+    depends_on:
+      - rmq
+    build:
+      context: ../../
+      dockerfile: docker/dev/Dockerfile
+
+networks:
+  x11:

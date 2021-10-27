@@ -1,0 +1,10 @@
+[Unit]
+Description=Software for IRIS: Incuvers Real-time Imaging System. An IoT cell incubator with imaging capabilities
+After=daemon.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/monitor-dev development
+
+[Install]
+WantedBy=multi-user.target

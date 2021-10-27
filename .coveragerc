@@ -1,0 +1,14 @@
+[run]
+omit = 
+    # unittest files
+    monitor/tests/*
+    # skip pygame src
+    monitor/ui/*
+    # skip sys modules (for now)
+    monitor/sys/*
+    monitor/__main__.py
+    monitor/__init__.py
+    monitor/__version__.py
+    
+
+source = monitor

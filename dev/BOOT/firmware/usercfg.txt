@@ -1,0 +1,15 @@
+# Place "config.txt" changes (dtparam, dtoverlay, disable_overscan, etc.) in
+# this file. Please refer to the README file for a description of the various
+# configuration files on the boot partition.
+enable_uart=1
+dtparam=audio=off
+dtoverlay=pi3-disable-bt
+dtoverlay=vc4-kms-v3d
+max_usb_connection=1
+hdmi_group=2
+hdmi_mode=87
+hdmi_cvt 1024 600 60 6 0 0 0
+config_hdmi_boost=10
+hdmi_drive=1
+overscan_right=24
+display_hdmi_rotate=1

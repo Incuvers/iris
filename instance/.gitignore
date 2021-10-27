@@ -1,0 +1,8 @@
+*
+!.gitignore
+!ci.env
+!dev.env
+!hardware.env
+!prod.env
+!snapcraft.env
+!README.md

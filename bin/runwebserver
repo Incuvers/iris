@@ -1,0 +1,11 @@
+#!/bin/bash
+
+uuid=$(cat "$SNAP_COMMON"/certs/uuid.txt)
+export UUID=$uuid
+# this is fine for UbuntuSErver, but should be revisited for UbuntuCore
+export MONTIOR_NETPLAN="/etc/netplan"
+
+# run flask in site packages so app/ is visible
+cd "$SNAP"/lib/python3.8/site-packages/ || exit
+
+python3 -m flask run -h '0.0.0.0' --port 80 --no-reload

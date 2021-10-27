@@ -1,0 +1,67 @@
+<!--
+ -*- coding: utf-8 -*-
+  Copyright (C) Incuvers, Inc - All Rights Reserved
+  Unauthorized copying of this file, via any medium is strictly prohibited
+  Proprietary and confidential
+-->
+
+
+<style>
+  .container {
+    font-size: medium;
+    text-align: center;
+    vertical-align: middle;
+    padding-top: 10%;
+  }
+
+  @keyframes pulse {
+    from {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(0.85);
+    }
+
+    to {
+      transform: scale(1);
+    }
+  }
+
+  .fe-pulse {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 20%;
+    max-height: 20%;
+    animation-name: pulse;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+  }
+</style>
+
+<div class="container">
+  <h1>Processing ...</h1>
+  <h2> Please wait until this page redirects before you reset your IRIS incubator
+  </h2>
+  <p>
+    {{message}}
+  <div class="fe-pulse">
+    <img class="responsive-img" src="{{url_for('static', filename='logo.png')}}" width="90%">
+  </div>
+  </p>
+
+
+  <script>
+
+    /**
+*   sets a timeout operation and redirects the client after the specified time in the callback
+* @returns void
+*/
+    window.setTimeout(function () {
+      window.location.href = "/";
+
+    }, 6000);
+  </script>
+
+</div>

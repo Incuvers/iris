@@ -1,0 +1,19 @@
+---
+name: deployment
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  iris-deploy:
+    name: iris snap deployment
+    runs-on: [self-hosted, linux, x64, docker]
+    steps:
+      - name: Deploy iris snap to edge
+        uses: Incuvers/iris-deploy@master
+        with:
+          SNAP_TOKEN: ${{ secrets.SNAP_TOKEN }}
+          SLACK_IDENTIFIER: ${{ secrets.SLACK_NOTIFICATIONS }}
+          ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ACCESS_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

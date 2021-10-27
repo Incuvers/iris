@@ -1,0 +1,21 @@
+#!/bin/bash
+export IDENTITY_SERVER_IP=7.7.7.7
+export IDENTITY_SERVER_PORT=8624
+export IDENTITY_ENV=dev
+export SNAP_COMMON=/etc/iris/SNAP_COMMON
+export SNAP_DATA=/var/log/iris
+export SNAP=/usr/local/lib/python3.8/dist-packages
+
+# BCM 22 is wPi 3
+#"$SNAP"/usr/bin/gpio edge 22 falling
+gpio edge 22 falling
+
+# BCM 17 is wPi 0
+#"$SNAP"/usr/bin/gpio edge 17 both
+gpio edge 17 both
+
+# BCM 27 is wPi 2
+#"$SNAP"/usr/bin/gpio edge 27 both
+gpio edge 27 both
+
+python3 -m daemon

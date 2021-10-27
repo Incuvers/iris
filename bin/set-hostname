@@ -1,0 +1,28 @@
+#!/bin/bash
+
+OK_GREEN='\033[1;32m'
+NC='\033[0m'
+FAIL='\033[0;31m'
+
+printf "Initializing hostname setup ..."
+# hostname identifier is scraped from first four characters of uuid.txt
+if ! [ -f "$SNAP_COMMON/certs/uuid.txt" ]; then
+        printf "%sFailed to locate uuid.txt in %s, Using default: IRIS.%s" "$FAIL" "$SNAP_COMMON" "$NC"
+        hostname="IRIS"
+else
+        printf "%sLocated uuid.txt in %s %s" "$OK_GREEN" "$SNAP_COMMON" "$NC"
+        host_id=$( echo "$(<"$SNAP_COMMON/certs/uuid.txt")" | cut -c1-4 )
+        # append hostname identifier to prefix IRIS to create hostname
+        prefix="IRIS-"
+        hostname="$prefix$host_id"
+fi
+
+# avahi utils shipped with snap
+avahi-set-host-name "$hostname"
+# plugged for hostnamectl
+hostnamectl set-hostname "$hostname"
+# system access
+export HOSTNAME="$hostname"
+# using hostname in $SNAP_DATA as an indicator of hostname setup
+echo "$hostname" > "$SNAP_COMMON"/hostname.txt
+echo -e "${OK_GREEN}successfully set hostname: $hostname and saved to local${NC}"

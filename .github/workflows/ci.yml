@@ -1,0 +1,54 @@
+---
+name: ci
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    type: [opened, synchronized, re-opened]
+    branches:
+      - develop
+
+jobs:
+  unittest:
+    name: unittest suite
+    runs-on: [self-hosted, linux, arm64, tests]
+    container:
+      image: incuvers/monitor:latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+      - name: Unittest Suite
+        run: |
+          make unit
+  lint:
+    name: lint suite
+    runs-on: [self-hosted, linux, arm64, tests]
+    container:
+      image: incuvers/monitor:latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+      - name: Run lint directive
+        run: make lint
+  pip:
+    name: pip package
+    runs-on: [self-hosted, linux, arm64, tests]
+    container:
+      image: incuvers/monitor:latest
+    steps:
+      - name: Check out the codebase.
+        uses: actions/checkout@v2
+      - name: Install monitor
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install . --ignore-installed
+          python3 -c "import monitor; monitor.__version__"
+  prune:
+    name: prune docker images and cache
+    runs-on: [self-hosted, linux, arm64, tests]
+    steps:
+      - name: Prune
+        run: docker image prune -af
+      - name: Report PV Storage
+        run: df -h

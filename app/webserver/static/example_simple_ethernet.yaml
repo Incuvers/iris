@@ -1,0 +1,11 @@
+# This is an example netplan file,
+# feel free to modify if for your network
+#
+# Incuvers, Inc.
+---
+network:
+  version: 2
+  renderer: NetworkManager
+  ethernets:
+    eth0:
+      dhcp4: true

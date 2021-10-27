@@ -1,0 +1,18 @@
+# root conf files
+.flake8
+mqtt-proxy.code-workspace
+README.md
+.gitignore
+Makefile
+MANIFEST.in
+setup.py
+
+# directory ignores
+scripts/
+docs/
+.github/
+daemon/
+dev/
+etc/
+fbshow/
+scripts/

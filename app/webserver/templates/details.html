@@ -1,0 +1,45 @@
+<!--
+ -*- coding: utf-8 -*-
+  Copyright (C) Incuvers, Inc - All Rights Reserved
+  Unauthorized copying of this file, via any medium is strictly prohibited
+  Proprietary and confidential
+-->
+
+{% extends 'base.html' %}
+{% import "bootstrap/utils.html" as utils %}
+
+
+{% block page_contet %}
+
+<style>
+  .container {
+    font-size: medium
+  }
+</style>
+
+<div class="container">
+  <h1>Details</h1>
+  <p>The device information shown here must be included when assistance is needed.</p>
+  <table class=table>
+    <thead>
+      <tr>
+        <th> </th>
+        <th> </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for key, value in details.items() %}
+      <tr>
+        <td>
+          <p>{{key}}</p>
+        </td>
+        <td>
+          <p><samp>{{value}}<samp></p>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}

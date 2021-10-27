@@ -1,0 +1,9 @@
+[Unit]
+Description=Setup services for Iris application
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/daemon-dev
+
+[Install]
+WantedBy=multi-user.target

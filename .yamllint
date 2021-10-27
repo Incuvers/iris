@@ -1,0 +1,11 @@
+---
+extends: default
+ignore: |
+  monitor/flash_service/icb/
+rules:
+  line-length:
+    max: 193
+    level: warning
+  truthy:
+    allowed-values: ['true', 'false', 'yes', 'no']
+    check-keys: false

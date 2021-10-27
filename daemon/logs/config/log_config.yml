@@ -1,0 +1,24 @@
+---
+version: 1
+disable_existing_loggers: false
+loggers:
+  '':   # defines loggers that are unregistered
+    level: 'DEBUG'
+    handlers: ['defaultHandler', 'fb']
+  daemon.ident:
+    level: 'DEBUG'
+    handlers: ['defaultHandler', 'fb']
+    propagate: false
+
+handlers:
+  defaultHandler:
+    level: 'DEBUG'
+    class: 'logging.StreamHandler'
+    formatter: default
+  fb:
+    (): 'fbshow.fb_log_handler.FBLogHandler'
+    output_device: '/dev/fb0'
+
+formatters:
+  default:
+    format: '%(asctime)s %(name)s line:%(lineno)d - %(levelname)s: %(message)s'

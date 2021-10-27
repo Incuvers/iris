@@ -1,0 +1,13 @@
+#!/bin/bash
+export IDENTITY_SERVER_IP=192.168.3.1
+export IDENTITY_SERVER_PORT=8624
+export IDENTITY_ENV=production
+
+# BCM 22 is wPi 3
+"$SNAP"/usr/bin/gpio edge 22 falling
+# BCM 17 is wPi 0
+"$SNAP"/usr/bin/gpio edge 17 both
+# BCM 27 is wPi 2
+"$SNAP"/usr/bin/gpio edge 27 both
+
+python3 -m daemon

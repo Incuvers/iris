@@ -1,0 +1,127 @@
+<!--
+ -*- coding: utf-8 -*-
+  Copyright (C) Incuvers, Inc - All Rights Reserved
+  Unauthorized copying of this file, via any medium is strictly prohibited
+  Proprietary and confidential
+-->
+{% extends 'base.html' %}
+{% block page_contet %}
+
+<style>
+  @keyframes pulse {
+    from {
+      transform: scale(1);
+    }
+
+    50% {
+      transform: scale(0.85);
+    }
+
+    to {
+      transform: scale(1);
+    }
+  }
+
+  #loader {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 20%;
+    max-height: 20%;
+    animation-name: pulse;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+  }
+
+  .center {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+  }
+
+  .vertical-space {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .container {
+    font-size: medium
+  }
+</style>
+
+<div id="loader" class="center">
+  <img class="responsive-img" src="{{url_for('static', filename='logo.png')}}" width="90%">
+</div>
+
+<div class="container">
+  <h1>Networking </h1>
+  <p>The telemetric chamber is designed to be interfaced via the cloud. This page will help you connect your device to
+    the internet.</p>
+  <p>Displaying current network configuration</p>
+  <div class="vertical-space">
+    <h2>Please enter your network details below</h2>
+  </div>
+  <div class="normal-connection">
+    <div class="vertical-space">
+      <form action="/addNetwork" method="POST">
+        <div class="form-group">
+          <label for="ssid">SSID</label>
+          <input type="text" class="form-control" id="ssid" name="ssid_name" aria-describedby="ssid"
+            placeholder="Enter ssid">
+          <small class="form-text text-muted">Enter your network name here</small>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" class="form-control" id="password" name="network_password" placeholder="Password">
+
+          <!-- An element to toggle between password visibility -->
+          <input type="checkbox" onclick="togglePasswordVisibiity()"> Show Password
+        </div>
+        <button type="submit" class="btn btn-primary" onclick="loading();">Connect</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.onreadystatechange = function () {
+      if (document.readyState !== "complete") {
+        document.querySelector(
+          "body").style.visibility = "hidden";
+        document.querySelector(
+          "#loader").style.visibility = "visible";
+      } else {
+        document.querySelector(
+          "#loader").style.display = "none";
+        document.querySelector(
+          "body").style.visibility = "visible";
+      }
+    };
+
+    /**
+    *   toggles the password visibility activated from the password checkbox
+    * @returns void
+    */
+    function togglePasswordVisibiity() {
+      const passwordField = document.getElementById("password");
+      if (passwordField.type === "password") {
+        passwordField.type = "text";
+      } else {
+        passwordField.type = "password";
+      }
+    }
+
+    /**
+    *   sets the incuvers loading logo for the duration of the request or operation
+    * @returns void
+    */
+    function loading() {
+      $(".container").hide();
+      $("#loader").show();
+    }
+  </script>
+
+</div>
+{% endblock %}

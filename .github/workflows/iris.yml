@@ -1,0 +1,19 @@
+---
+# build snap on new release
+name: build
+on:
+  release:
+    types: [published]
+
+jobs:
+  snap-build:
+    name: iris-snap
+    runs-on: [self-hosted, linux, ARM64, snap]
+    steps:
+      - name: Start IRIS Build Server
+        uses: Incuvers/iris-build@master
+        env:
+          SLACK_IDENTIFIER: ${{ secrets.SLACK_NOTIFICATIONS }}
+          ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ACCESS_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          GIT_REF: ${{ github.ref }}

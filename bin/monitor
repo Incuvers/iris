@@ -1,0 +1,46 @@
+#!/bin/bash
+# disable shellchecking on source files
+# shellcheck disable=SC1090 disable=SC1091
+set -e
+
+# default monitor environment
+export MONITOR_ENV="production"
+export MONITOR_MODE="monitor"
+
+# argparse for overrides 
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case "$key" in
+    -d|--development)
+      export MONITOR_ENV="development"
+      shift
+      ;;
+    -m|--mode)
+      export MONITOR_MODE="$2"
+      shift
+      shift
+      ;;
+  esac
+done
+
+if [ "$MONITOR_ENV" == "development" ]; then
+  source instance/snapcraft.env
+  source "$SNAP_COMMON"/certs/device.env
+  source "$SNAP_COMMON"/hardware.env
+  source "$SNAP_COMMON"/dev.env
+else
+  source "$SNAP_COMMON"/certs/device.env
+  source "$SNAP_COMMON"/hardware.env
+  source "$SNAP_COMMON"/prod.env
+fi
+
+printf "%b" "IRIS™ Monitor\n"
+printf "%b" "====================================================\n"
+printf "%b" "Device: \t$ID\n"
+printf "%b" "Environment: \t$MONITOR_ENV\n"
+printf "%b" "Mode: \t\t$MONITOR_MODE\n"
+printf "%b" "Cache: \t\t$MONITOR_CACHE\n"
+printf "%b" "Data: \t\t$SNAP_DATA\n"
+printf "%b" "====================================================\n\n"
+
+python3 -m monitor

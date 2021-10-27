@@ -1,0 +1,219 @@
+---
+version: 1
+disable_existing_loggers: false
+loggers:
+  '':   # defines loggers that are unregistered
+    level: 'DEBUG'
+    handlers: ['defaultHandler']
+  monitor.environment:
+    level: 'DEBUG'
+    handlers: ['environmentHandler']
+    propagate: false
+  monitor.environment.state_manager:
+    level: 'DEBUG'
+    handlers: ['stateHandler']
+    propagate: false
+  monitor.events:
+    level: 'DEBUG'
+    handlers: ['eventHandler']
+    propagate: false
+  monitor.cloud:
+    level: 'DEBUG'
+    handlers: ['mqttHandler']
+    propagate: false
+  AWSIoTPythonSDK:
+    level: 'WARNING'
+    handlers: ['mqttHandler']
+    propagate: false
+  monitor.api:
+    level: 'DEBUG'
+    handlers: ['apiHandler']
+    propagate: false
+  urllib3.connectionpool:
+    level: 'DEBUG'
+    handlers: ['apiHandler']
+    propagate: false
+  retry.api:
+    level: 'DEBUG'
+    handlers: ['apiHandler']
+    propagate: false
+  monitor.microscope:
+    level: 'DEBUG'
+    handlers: ['microscopeHandler']
+    propagate: false
+  monitor.arduino_link:
+    level: 'DEBUG'
+    handlers: ['arduinoHandler']
+    propagate: false
+  monitor.flash_service.flash_service:
+    level: 'DEBUG'
+    handlers: ['flashHandler']
+    propagate: false
+  monitor.ui:
+    level: 'DEBUG'
+    handlers: ['uiHandler']
+    propagate: false
+  monitor.rotary_knob:
+    level: 'DEBUG'
+    handlers: ['rotaryHandler']
+    propagate: false
+  monitor.sys:
+    level: 'DEBUG'
+    handlers: ['systemHandler']
+    propagate: false
+  monitor.sys.benchmark:
+    level: 'DEBUG'
+    handlers: ['consoleHandler']
+    propagate: false
+  monitor.imaging:
+    level: 'DEBUG'
+    handlers: ['imagingHandler']
+    propagate: false
+  monitor.protocol:
+    level: 'DEBUG'
+    handlers: ['protocolHandler']
+    propagate: false
+  monitor.scheduler:
+    level: 'DEBUG'
+    handlers: ['schedulerHandler']
+    propagate: false
+  monitor.environment.cache:
+    level: 'DEBUG'
+    handlers: ['cacheHandler']
+    propagate: false
+
+handlers:
+  defaultHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/unregistered.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 2
+  systemHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/system.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 3
+  stateHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/state.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 5
+  environmentHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/environment.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 3
+  eventHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/event.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 5
+  mqttHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/mqtt.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 5
+  microscopeHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/microscope.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 1
+  arduinoHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/arduino.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 1
+  imagingHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/imaging.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 1
+  protocolHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/protocol.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 1
+  apiHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/api.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 5
+  flashHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/flash_service.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 1
+  uiHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/ui.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 1
+  rotaryHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/rotary.log
+    mode: 'a'
+    maxBytes: 1000000
+    backupCount: 1
+  schedulerHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/scheduler.log
+    mode: 'a'
+    maxBytes: 1000000
+  cacheHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: ${SNAP_DATA}/cache.log
+    mode: 'a'
+    maxBytes: 1000000
+  consoleHandler:
+    level: 'DEBUG'
+    class: 'logging.StreamHandler'
+    formatter: default
+
+formatters:   # more commment
+  default:
+    format: '%(asctime)s %(threadName)s %(name)s line:%(lineno)d - %(levelname)s: %(message)s'
