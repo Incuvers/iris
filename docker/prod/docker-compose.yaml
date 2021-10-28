@@ -18,9 +18,6 @@ services:
     networks:
       - x11
     environment:
-      - DISPLAY=novnc:0.0
-      - SDL_VIDEODRIVER=x11
-      - SDL_NOMOUSE=1
       - SNAP=/app
       - SNAP_DATA=/app/monitor/logs
       - SNAP_COMMON=/app/instance
@@ -29,11 +26,12 @@ services:
 
   hwi:
     container: hwi
+    image: hwi
     depends_on:
       - rmq
-    build:
-      context: ../../
-      dockerfile: docker/dev/Dockerfile
+    environment:
+      - RABBITMQ_HOST=rmq
+
 
 networks:
   x11:

@@ -1,6 +1,6 @@
 # root conf files
 .flake8
-mqtt-proxy.code-workspace
+monitor.code-workspace
 README.md
 .gitignore
 Makefile

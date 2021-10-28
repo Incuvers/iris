@@ -1,9 +1,0 @@
-[Unit]
-Description=Flask webserver interface for IRIS
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/runwebserver-dev
-
-[Install]
-WantedBy=multi-user.target
