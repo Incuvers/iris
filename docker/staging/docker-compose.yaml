@@ -21,11 +21,15 @@ services:
       - ../../:/app
     environment:
       - ID=a7ac2d3e-055a-49da-8b1a-c8ccee7b5bbe
+      - SDL_FBDEV=/dev/fb0
+      - SDL_VIDEODRIVER=fbcon
+      - SDL_VIDEO_CENTERED=1
+      - SDL_NOMOUSE=1
       - SNAP=/app
       - SNAP_DATA=/app/monitor/logs
       - SNAP_COMMON=/app/instance
-      - AWS_TT=aws/things/${ID}/telemetry/
       - RABBITMQ_ADDR=rmq:5672
+      - MONITOR_CACHE=/app/instance/cache
       - MPLBACKEND=Agg
       - API_BASE_URL=https://api.staging.incuvers.com
       - API_BASE_PATH=/v1
