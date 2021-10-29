@@ -31,6 +31,7 @@ services:
       - RABBITMQ_ADDR=rmq:5672
       - MONITOR_CACHE=/app/instance/cache
       - MONITOR_MODE=monitor
+      - MONITOR_ENV=development
       - MPLBACKEND=Agg
       - API_BASE_URL=https://api.staging.incuvers.com
       - API_BASE_PATH=/v1
