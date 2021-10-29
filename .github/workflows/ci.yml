@@ -44,4 +44,3 @@ jobs:
         run: |
           python3 -m pip install .
           python3 -c 'import monitor; print(monitor.__version__)'
-

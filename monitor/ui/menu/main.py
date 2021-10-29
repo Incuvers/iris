@@ -34,14 +34,11 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 
-import time
-
 from monitor.sys import system
 from monitor.events.registry import Registry as events
-from monitor.environment.state_manager import StateManager
+# from monitor.environment.state_manager import StateManager
 from monitor.environment.thread_manager import ThreadManager as tm
 # from monitor.microscope.microscope import Microscope as scope
-from monitor.microscope.fluorescence.hardware import FluorescenceHardware
 from monitor.ui.menu.info import InfoMenu
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.menu.pgm import events as pge
@@ -144,7 +141,7 @@ class MainMenu:
     @tm.threaded(daemon=True)
     def overheat_protection(self):
         self.overheat_protection_active = True
-        time.sleep(FluorescenceHardware.GFP_COOLDOWN)
+        # time.sleep(FluorescenceHardware.GFP_COOLDOWN)
         self.overheat_protection_active = False
 
     def _background_redraw(self) -> None:
