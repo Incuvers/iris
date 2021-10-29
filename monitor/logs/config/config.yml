@@ -139,7 +139,7 @@ handlers:
     level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: ${SNAP_DATA}/ui.log
+    filename: monitor/logs/ui.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 1
