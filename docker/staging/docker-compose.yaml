@@ -13,7 +13,7 @@ services:
   monitor:
     container_name: monitor
     depends_on:
-      - rmq 
+      - rmq
     build:
       context: ../../
       dockerfile: docker/dev/Dockerfile
