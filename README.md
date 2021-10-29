@@ -1,12 +1,7 @@
 # Monitor: IRIS Embedded Development
-[![deployment](https://github.com/Incuvers/monitor/actions/workflows/deploy.yml/badge.svg?branch=master)](https://github.com/Incuvers/monitor/actions/workflows/deploy.yml)
-[![build](https://github.com/Incuvers/monitor/actions/workflows/iris.yml/badge.svg)](https://github.com/Incuvers/monitor/actions/workflows/iris.yml)
-[![ci](https://github.com/Incuvers/monitor/actions/workflows/ci.yml/badge.svg)](https://github.com/Incuvers/monitor/actions/workflows/ci.yml)
-![coverage](/doc/img/coverage.svg)
-
 ![img](/doc/img/Incuvers-black.png)
 
-Updated: 2020-11
+Updated: 2021-11
 
 ## Navigation
 1. [Quickstart](#quickstart)
@@ -42,28 +37,9 @@ make lint
 ```
 This target requires `yamllint` (all `.yaml` files), `shellcheck` (binaries located under `bin/`)and `flake8` (python app codebase) to be installed and in your `$PATH`. The `yamllint` and `flake8` configuration for monitor can be found in the [.yamllint](/.yamllint) and [.flake8](/.flake8) in root respectively.
 
-### Test CI Build Specs
-```bash
-make ci
-```
-This target will build a multipass container for both the linting and unittest suite jobs. The parameters for the containers can be edited in the [.env](/.env) file. This route is recommended for developing on non-Ubuntu platforms to ensure the features are conforment to the production environment and package dependancies.
-
-### Simulated Snap Environment
-```bash
-make dev
-```
-This target installs and runs our app in a simulated snap environment by setting `SNAP` runtime environment variables and pointing them to linux directives as if it was run as an `apt` package. You will need a set of credentials to run the app. See the list of required files to be saved in [this](/daemon/ident/serial_certs) directory.
-
-### Build and Install Snap
-```bash
-make all
-```
-This will build a `devmode` confined version of our snap using `lxd` container
-
 ## Developers Guide
 Welcome to the team. Please see the [developers guide](./dev/README.md) for Incuvers guidelines and best practices.
 
 ## Development Team
 David Sean (CTO) (david@incuvers.com)\
-Travis Haycock (travis@incuvers.com)\
 Christian Sargusingh (christian@incuvers.com)
