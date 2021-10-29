@@ -2,12 +2,13 @@
 name: deploy
 on:
   push:
-    branches: master
+    branches:
+      - master
 
 jobs:
   deploy:
-    name: GHCR Push
-    runs-on: ubuntu-latest
+    name: Image build & push
+    runs-on: [self-hosted, linux, arm64, docker]
     permissions:
       packages: write
       contents: read
@@ -21,7 +22,6 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
-
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v3
