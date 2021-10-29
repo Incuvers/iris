@@ -51,14 +51,11 @@ import struct
 from pathlib import Path
 from monitor.sys import kernel
 from monitor.sys import decorators
-from monitor.cloud.mqtt import MQTT
-from monitor.arduino_link.sensors import Sensors
-from monitor.arduino_link.icb_logger import ICBLogger
+# from monitor.cloud.mqtt import MQTT
 # from monitor.microscope.microscope import Microscope as scope
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
 from monitor.environment.state_manager import StateManager
-from monitor.flash_service.flash_service import FlashService
 from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
@@ -82,7 +79,7 @@ def main():
         else:
             _logger.info("%s", result)
         events.system_status.trigger(msg="Initializing modules")
-        _mqtt = MQTT()
+        # _mqtt = MQTT()
         SetpointScheduler()
         ImagingScheduler()
         # load runtime models from cache into state manager
@@ -93,15 +90,9 @@ def main():
         _logger.info("Lab ID: %s", lab_id)
         time.sleep(1)
         events.system_status.trigger(msg="Initializing hardware link")
-        # these modules reboot the arduino
-        # _sensors = Sensors(serial_port=os.environ.get('GPIO_SERIAL', "/dev/ttyAMA0"))
-        _icb_logger = ICBLogger(serial_port=os.environ.get('USB_SERIAL', "/dev/ttyUSB0"))
-        # start the serial monitoring loops (both should start at the same time)
-        # _sensors.monitor()
-        _icb_logger.start()
         time.sleep(1)
         events.system_status.trigger(msg="Loading cloud resources")
-        _mqtt.start()
+        # _mqtt.start()
     except BaseException as exc:
         _logger.exception(exc)
         events.system_status.trigger(
@@ -129,9 +120,6 @@ def service_boot():
             _logger.info("%s", result)
         events.system_status.trigger(msg="Loading servicing assets. Please wait.")
         # create a sink for SENSORFRAME_UPDATED trigger
-        # EnvironmentBenchmark()
-        _sensors = Sensors(serial_port=os.environ.get('GPIO_SERIAL', "/dev/ttyUSB0"))
-        _sensors.monitor()
     except BaseException as exc:
         _logger.exception(exc)
         events.system_status.trigger(
@@ -287,9 +275,7 @@ def flash_firmware():
     """
     try:
         events.system_status.trigger(msg="Applying firmware update")
-        flash_service = FlashService()
         _logger.debug("flashing device")
-        flash_service.flash_device()
     except FileNotFoundError:
         _logger.exception("Failed to flash ATMEGA2560, file not present")
         events.system_status.trigger(status=uis.STATUS_ALERT,
@@ -349,8 +335,8 @@ def calibrate_dpc():
                 imaging_profile.dpc_exposure = exposure_us
                 result = state.commit(imaging_profile, cache=False)
                 _logger.debug("Exposure change result: %s", result)
-            data = scope.dpc_capture()
-            for idx, capture in enumerate(data):
+            # data = scope.dpc_capture()
+            for idx, capture in enumerate([]):
                 np.savez_compressed(f'{fname}_{idx}.npz', data=capture.astype(np.uint8))
             _logger.debug("%s exposure saved", exposure_us)
     except BaseException as exc:
