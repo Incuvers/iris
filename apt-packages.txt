@@ -1,5 +1,7 @@
 python3-dev
 python3-pip
+python3-numpy
+python3-opengl
 swig
 build-essential
 python3-setuptools
@@ -9,3 +11,18 @@ libsdl-mixer1.2-dev
 libfreetype6-dev
 libportmidi-dev
 libsdl-ttf2.0-dev
+libsmpeg-dev
+libswscale-dev
+libavformat-dev
+libavcodec-dev
+libtiff5-dev
+libx11-6
+libx11-dev
+fluid-soundfont-gm
+timgm6mb-soundfont
+xfonts-base
+xfonts-100dpi
+xfonts-75dpi
+xfonts-cyrillic
+fontconfig
+fonts-freefont-ttf
