@@ -85,6 +85,7 @@ class MQTT():
         self.client = mqtt.Client(client_id=self._id)
         self.ssl_context = self._configure_credentials(cert_path=cert, key_path=key, ca_path=pem)
         self._logger.info("Instantiation successful.")
+        
 
     def _configure_credentials(self, cert_path=None, key_path=None, ca_path=None):
         try:
@@ -93,7 +94,6 @@ class MQTT():
             ssl_context.set_alpn_protocols(["x-amzn-mqtt-ca"])
             ssl_context.load_verify_locations(cafile=ca_path)
             ssl_context.load_cert_chain(certfile=cert_path, keyfile=key_path)
-
             return  ssl_context
         except Exception as exc:
             print("exception ssl_alpn()")
@@ -121,8 +121,7 @@ class MQTT():
                 self._on_connect()
                 break
 
-    @tm.set_name("aws-connect")
-    def _on_connect(self) -> None:
+    def _on_connect(self, *args) -> None:
         """
         MQTT connect on callback
         """
@@ -136,7 +135,7 @@ class MQTT():
             state.commit(device)
 
     @tm.set_name("aws-discon")
-    def _on_disconnect(self) -> None:
+    def _on_disconnect(self, *args) -> None:
         """
         MQTT disconnect callback
         """
@@ -169,8 +168,7 @@ class MQTT():
             self.client.will_set(context.get_env('AWS_LWT'), last_will_payload, 0, False)
         try:
             self.client.connect(self.iot_endpoint, port=conf.PORT)
-
-        except (AWSIoTExceptions.connectTimeoutException, AWSIoTExceptions.connectError) as exc:
+        except ValueError as exc:
             self._logger.warning(
                 "Unable to configure a connection with the cloud services: %s", exc)
             raise ConnectionError from exc
@@ -225,6 +223,7 @@ class MQTT():
                 'dpc_outer_radius': imaging_profile.dpc_outer_radius
             }
             shadow_payload['state']['reported']['imaging_payload'] = imaging_payload
+            return shadow_payload
 
     @ tm.threaded(daemon=True)
     def _img_topic_resolver(self, client, userdata, message) -> None:
@@ -393,9 +392,14 @@ class MQTT():
                 if experiment.initialized and experiment.active:
                     # republish old telemetry, but with exp_id
                     payload['exp_id'] = experiment.id
-                    self.client.publish(self.aws_tt, json.dumps(payload), QoS=0)
+                    self.client.publish(self.aws_tt, json.dumps(payload), qos=0)
                     self._logger.debug("Published experiment telemetry document %s", payload)
                 # reset the error_msgs
                 self._error_msg = ""
         except AWSIoTExceptions.publishTimeoutException as exc:
             self._logger.exception("Telemetry document publish timed out %s", exc)
+
+if __name__ =="__main__":
+    import os
+
+    mq = MQTT()
