@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import io
@@ -47,27 +46,16 @@ setup(
     long_description_content_type='text/markdown',
     author=AUTHOR,
     author_email=EMAIL,
-    url='https://snapcraft.io/iris/listing',
+    url='https://github.com/Incuvers/iris',
     python_requires=REQUIRES_PYTHON,
     packages=find_packages(exclude=["tests"]),
-    scripts=[
-        'bin/monitor',
-        'bin/runwebserver',
-        'bin/daemon',
-        'bin/set-hostname',
-        'bin/host-ap',
-    ],
     include_package_data=True,
     setup_requires=['wheel'],
     install_requires=REQUIRED,
     classifiers=[
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
-        'Development Status :: 4 - Beta',
-        'Framework :: Flask',
-        'Programming Language :: Python',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Embedded Systems',
