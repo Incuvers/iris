@@ -46,6 +46,7 @@ services:
       - SNAP_COMMON=/app/instance
       - MPLBACKEND=Agg
       - MONITOR_CACHE=/app/instance/cache
+      - MONITOR_MODE=monitor
       - RABBITMQ_ADDR=rmq:5672
       - API_BASE_URL=https://api.dev.incuvers.com
       - API_BASE_PATH=/v1
