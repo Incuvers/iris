@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# shellcheck disable=SC1091
 source .env
 
 # handle all non-zero exit status codes with a slack notification
