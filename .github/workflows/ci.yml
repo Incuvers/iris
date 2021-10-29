@@ -18,6 +18,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Unittest Suite
         run: |
+          python3 -m pip install freezegun
+          python3 -m pip install -r requirements.txt
           make unit
   lint:
     name: lint suite
@@ -26,7 +28,11 @@ jobs:
       - name: Check out the codebase.
         uses: actions/checkout@v2
       - name: Run lint directive
-        run: make lint
+        run: |
+          python3 -m pip install flake8
+          python3 -m pip install -r requirements.txt
+          touch .env
+          make lint
   pip:
     name: pip package
     runs-on: ubuntu-latest
