@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Install dependancies
         run: |
-          apt update
+          sudo apt update
           xargs -a apt-packages.txt sudo apt install -y
           python3 -m pip install freezegun
           python3 -m pip install -r requirements.txt
@@ -32,10 +32,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Install dependancies
         run: |
-          apt update
-          xargs -a apt-packages.txt sudo apt install -y
           python3 -m pip install flake8
-          python3 -m pip install -r requirements.txt
           touch .env
       - name: Run lint directive
         run: make lint
@@ -54,7 +51,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install monitor
         run: |
-          apt update
+          sudo apt update
           xargs -a apt-packages.txt sudo apt install -y
           python3 -m pip install .
           python3 -c 'import monitor; print(monitor.__version__)'
