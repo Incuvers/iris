@@ -1,7 +1,5 @@
 ---
 extends: default
-ignore: |
-  monitor/flash_service/icb/
 rules:
   line-length:
     max: 193

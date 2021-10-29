@@ -1,4 +1,6 @@
 # Monitor: IRIS Embedded Development
+[![ci](https://github.com/Incuvers/iris/actions/workflows/ci.yml/badge.svg)](https://github.com/Incuvers/iris/actions/workflows/ci.yml)
+[![deploy](https://github.com/Incuvers/iris/actions/workflows/image.yml/badge.svg)](https://github.com/Incuvers/iris/actions/workflows/image.yml)
 ![img](/doc/img/Incuvers-black.png)
 
 Updated: 2021-11

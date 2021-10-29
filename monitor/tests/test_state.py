@@ -16,7 +16,7 @@ import asyncio
 import logging
 import unittest
 from typing import Callable
-from unittest.mock import AsyncMock, MagicMock, Mock, call, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 from monitor.models.icb import ICB
 from monitor.models.experiment import Experiment
