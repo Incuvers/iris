@@ -1,3 +1,0 @@
-#!/bin/bash
-
-"$SNAP"/bin/nmcli dev wifi hotspot ifname wlan0 ssid "$HOSTNAME" password "incuvers123"

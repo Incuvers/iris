@@ -1,3 +1,4 @@
+---
 version: "2.9"
 services:
   rmq:
@@ -5,33 +6,40 @@ services:
     image: rabbitmq:3.9-management
     volumes:
       - "../rabbitmq/:/etc/rabbitmq/"
+    ports:
+      # expose for rmq web client
+      - "15672:15672"
 
   monitor:
     container_name: monitor
     depends_on:
-      - rmq 
+      - rmq
     build:
       context: ../../
       dockerfile: docker/dev/Dockerfile
     volumes:
       - ../../:/app
-    networks:
-      - x11
     environment:
+      - ID=a7ac2d3e-055a-49da-8b1a-c8ccee7b5bbe
+      - SDL_FBDEV=/dev/fb0
+      - SDL_VIDEODRIVER=fbcon
+      - SDL_VIDEO_CENTERED=1
+      - SDL_NOMOUSE=1
       - SNAP=/app
       - SNAP_DATA=/app/monitor/logs
       - SNAP_COMMON=/app/instance
-      - AWS_TT=aws/things/$ID/telemetry/
-      - RABBITMQ_HOST=rmq
+      - RABBITMQ_ADDR=rmq:5672
+      - MONITOR_CACHE=/app/instance/cache
+      - MONITOR_MODE=monitor
+      - MONITOR_ENV=development
+      - MPLBACKEND=Agg
+      - API_BASE_URL=https://api.staging.incuvers.com
+      - API_BASE_PATH=/v1
 
   hwi:
     container: hwi
-    image: hwi
+    image: ghcr.io/hwi:master
     depends_on:
       - rmq
     environment:
       - RABBITMQ_HOST=rmq
-
-
-networks:
-  x11:

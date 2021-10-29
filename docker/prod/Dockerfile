@@ -10,14 +10,14 @@ WORKDIR /app
 
 # add package dependancy indices
 COPY apt-packages.txt /app/apt-packages.txt
-COPY pre-requirements.txt /app/pre-requirements.txt
-COPY requirements.txt /app/requirements.txt
 
 # install dependancies
 RUN DEBIAN_FRONTEND=noninteractive TZ=America/New_York \
     xargs -a apt-packages.txt apt install \
     -y --no-install-recommends --fix-missing
-RUN python3 -m pip install --upgrade -r pre-requirements.txt --ignore-installed
-RUN python3 -m pip install -r requirements.txt
 
-ENTRYPOINT [ "./docker/dev/entry.sh" ]
+# mount the repository root and install the application
+COPY . .
+RUN python3 -m pip install .
+
+ENTRYPOINT [ "./docker/prod/entry"]

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source .env
+
 # handle all non-zero error status codes
 trap 'handler $? $LINENO' ERR
 
@@ -17,10 +19,8 @@ printf "%b" "${OKG} ✓ ${NC} Pass\n"
 
 printf "%b" "${OKB}Linting shell scripts${NC}\n"
 shellcheck -x scripts/*
-shellcheck -x bin/* 
-
 printf "%b" "${OKG} ✓ ${NC} Pass\n"
 
 printf "%b" "${OKB}Linting python w/ flake8${NC}\n"
-flake8 monitor app daemon
+flake8 .
 printf "%b" "${OKG} ✓ ${NC} Pass\n"

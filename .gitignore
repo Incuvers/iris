@@ -57,3 +57,5 @@ monitor/tests/integration_tests/*.html
 .idea/
 venv/
 .vscode/
+
+.env

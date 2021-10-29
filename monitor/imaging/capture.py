@@ -65,12 +65,14 @@ class Capture:
         Normalize by a background image
         Both need to be the same shape
         """
-        try:
-            background_img = np.load(bg_fname)['data']
-        except FileNotFoundError:
-            self._logger.warning("DPC background: %s not found. Image is NOT normalized.", bg_fname)
-        else:
-            capture = capture / background_img * np.mean(background_img)
+        img = np.load(bg_fname)
+        if img:
+            try:
+                background_img = img['data']
+            except FileNotFoundError:
+                self._logger.warning("DPC background: %s not found. Image is NOT normalized.", bg_fname)
+            else:
+                capture = capture / background_img * np.mean(background_img)
         return capture
 
     @staticmethod
