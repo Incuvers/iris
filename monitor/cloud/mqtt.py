@@ -39,11 +39,10 @@ import paho.mqtt.client as mqtt
 from datetime import datetime, timezone
 from json.decoder import JSONDecodeError
 
-from monitor.models.icb import ICB
+# from monitor.models.icb import ICB
 from monitor.exceptions.mqtt import ImageTopicError
 from monitor.environment.state_manager import StateManager
 from monitor.cloud.config import MQTTConfig as conf
-from monitor.environment.context_manager import ContextManager
 from monitor.events.registry import Registry as events
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
@@ -70,20 +69,27 @@ class MQTT():
         self._error_msg = ""
         # last long point type publish time
         self.last_lpt_publish = 0
-        with ContextManager() as context:
-            self._id = context.get_env('ID')
-            super().__init__(self._id)
-            pem = context.get_env('AWS_PEM')
-            key = context.get_env('AWS_KEY')
-            cert = context.get_env('AWS_CERT')
-            self.aws_tt = context.get_env('AWS_TT')
-            self.aws_ip = context.get_env('AWS_IP')
-            # hard-code for now
-            self.topic_desired = context.get_env('AWS_DT')
-            self.iot_endpoint = context.get_env('IOT_BASE_URL')
+        ca = "./secrets/AmazonRootCA1.pem" 
+        cert = "./secrets/certificate.pem.crt"
+        private = "./secrets/private.pem.key"
+        self.id ="802cbf29-da47-47e9-9adb-a82b42cefa87"
+        self.aws_tt = f"aws/things/{self.id}/telemetry/"
+        self.topic_desired = f"aws/things/{self.id}/desired/"
+        self.aws_ip = f"aws/things/{self.id}/new_image/"
+        self.iot_endpoint = "a1h6zgnf68qmlj-ats.iot.ca-central-1.amazonaws.com"
 
-        self.client = mqtt.Client(client_id=self._id)
-        self.ssl_context = self._configure_credentials(cert_path=cert, key_path=key, ca_path=pem)
+        # with ContextManager() as context:
+            # pem = context.get_env('AWS_PEM')
+            # key = context.get_env('AWS_KEY')
+            # cert = context.get_env('AWS_CERT')
+            # self.aws_tt = context.get_env('AWS_TT')
+            # self.aws_ip = context.get_env('AWS_IP')
+            # hard-code for now
+            # self.topic_desired = context.get_env('AWS_DT')
+            # self.iot_endpoint = context.get_env('IOT_BASE_URL')
+
+        self.client = mqtt.Client(client_id=self.id)
+        self.ssl_context = self._configure_credentials(cert_path=cert, key_path=private, ca_path=ca)
         self._logger.info("Instantiation successful.")
         
 
@@ -106,10 +112,15 @@ class MQTT():
         connection fails we retry the connection setup process until the connection is successful
         """
         events.system_status.trigger(msg="Loading Incuvers cloud assets")
+        print("starting =MQTT")
         while True:
             try:
                 # auto calls on_connect_callback
                 self._configure_connection()
+                self.client.publish(f"aws/things/{self.id}/telemetry/", json.dumps({'hi':'mom'}), qos=0)
+                self.client.publish("aws/things/802cbf29-da47-47e9-9adb-a82b42cefa87/telemetry/", json.dumps({'hi':'mom'}), qos=0)
+
+                self._report_telemetry()
             except ConnectionError:
                 with StateManager() as state:
                     device = state.device
@@ -163,21 +174,27 @@ class MQTT():
         # self.onOffline = self._on_disconnect
 
         # configure last will payload
-        last_will_payload = json.dumps({'state': {'reported': {'is_online': False}}})
-        with ContextManager() as context:
-            self.client.will_set(context.get_env('AWS_LWT'), last_will_payload, 0, False)
+        # last_will_payload = json.dumps({'state': {'reported': {'is_online': False}}})
+        # with ContextManager() as context:
+        #     self.client.will_set(context.get_env('AWS_LWT'), last_will_payload, 0, False)
         try:
             self.client.connect(self.iot_endpoint, port=conf.PORT)
+            self.client.loop_start()
+
+            self._logger.info('trying tp publish..')
+            self.client.publish(f"aws/things/802cbf29-da47-47e9-9adb-a82b42cefa87/telemetry/", json.dumps({'hi':'mom'}), qos=0)
+            self._logger.info('ok!!!')
+
         except ValueError as exc:
             self._logger.warning(
                 "Unable to configure a connection with the cloud services: %s", exc)
             raise ConnectionError from exc
 
         # subscribe to mulitple topics
-        res = self.client.subscribe([(self.aws_ip, 0), (self.topic_desired, 0)])
-        print(res)
-        self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
-        self.client.message_callback_add(self.topic_desired, self._desired_topic_resolver)
+        # res = self.client.subscribe([(self.aws_ip, 0), (self.topic_desired, 0)])
+        # self._logger.info("subscribe results: %s", res)
+        # self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
+        # self.client.message_callback_add(self.topic_desired, self._desired_topic_resolver)
         self._logger.info("Successfully configured MQTT connection")
 
 
@@ -257,7 +274,7 @@ class MQTT():
         if req_id is None:
             self._logger.info("Missing req_id, ignoring.")
             return
-        self._delta_resolver(message)
+        self._delta_resolver(message, req_id)
 
     @tm.lock(tm.mqtt_lock)
     def _delta_resolver(self, requests: dict, req_id: str) -> None:
@@ -349,7 +366,8 @@ class MQTT():
         self._logger.info("Starting protocol refresh resolution")
         events.new_protocol.trigger()
 
-    async def _report_telemetry(self, icb: ICB) -> None:
+    @tm.threaded(daemon=True)
+    def _report_telemetry(self) -> None:
         """
         Callback for reporting telemetry data to cloud. We have different telemetry point types
         with different ttl values for plotting on the webapp so we package the telemetry based on
@@ -357,49 +375,53 @@ class MQTT():
 
         :param qos: AWS client publishing parameter defining caching and retrying failed publishes
         """
-        try:
-            epoch = round(datetime.now(timezone.utc).timestamp())
-            # publish long point once every 15 minutes
-            if epoch >= self.last_lpt_publish + (15 * 60):
-                save_point = True
-                self.last_lpt_publish = epoch
-            else:
-                save_point = False
-            if icb.initialized:
-                # classic minimal telemetry payload
-                payload = {
-                    'TC': icb.tc,
-                    'CC': icb.cc,
-                    'OC': icb.oc,
-                    'RH': icb.rh,
-                    'TP': icb.tp,
-                    'CP': icb.cp,
-                    'OP': icb.op,
-                    'TO': icb.to,
-                    'time': icb.timestamp,
-                    'exp_id': "-1",
-                    'ttl': 0 if save_point else datetime.now(timezone.utc).timestamp() + 120,
-                    'point_type': 1 if save_point else 0
-                }
-                # full state payload
-                payload['shadow'] = self._generate_shadow_document()
-                payload['errors'] = self._error_msg
+        # TODO: check timestamps to see if data is old
+        while True:
+            with StateManager() as state:
+                icb = state.icb
+            try:
+                epoch = round(datetime.now(timezone.utc).timestamp())
+                self._logger.info("reporting telemetry results: %s", epoch)
 
-                self.client.publish(self.aws_tt, json.dumps(payload), QoS=0)
-                self._logger.debug("Published telemetry document %s", payload)
-                with StateManager() as state:
-                    experiment = state.experiment
-                if experiment.initialized and experiment.active:
-                    # republish old telemetry, but with exp_id
-                    payload['exp_id'] = experiment.id
+                # publish long point once every 15 minutes
+                if epoch >= self.last_lpt_publish + (15 * 60):
+                    save_point = True
+                    self.last_lpt_publish = epoch
+                else:
+                    save_point = False
+                if icb.initialized:
+                    # classic minimal telemetry payload
+                    payload = {
+                        'TC': icb.tc,
+                        'CC': icb.cc,
+                        'OC': icb.oc,
+                        'RH': icb.rh,
+                        'TP': icb.tp,
+                        'CP': icb.cp,
+                        'OP': icb.op,
+                        'TO': icb.to,
+                        'time': icb.timestamp,
+                        'exp_id': "-1",
+                        'ttl': 0 if save_point else datetime.now(timezone.utc).timestamp() + 120,
+                        'point_type': 1 if save_point else 0
+                    }
+                    # full state payload
+                    payload['shadow'] = self._generate_shadow_document()
+                    payload['errors'] = self._error_msg
+
                     self.client.publish(self.aws_tt, json.dumps(payload), qos=0)
-                    self._logger.debug("Published experiment telemetry document %s", payload)
-                # reset the error_msgs
-                self._error_msg = ""
-        except AWSIoTExceptions.publishTimeoutException as exc:
-            self._logger.exception("Telemetry document publish timed out %s", exc)
+                    print("Just published telemerty!!!")
+                    self._logger.debug("Published telemetry document %s", payload)
+                    with StateManager() as state:
+                        experiment = state.experiment
+                    if experiment.initialized and experiment.active:
+                        # republish old telemetry, but with exp_id
+                        payload['exp_id'] = experiment.id
+                        self.client.publish(self.aws_tt, json.dumps(payload), qos=0)
+                        self._logger.debug("Published experiment telemetry document %s", payload)
+                    # reset the error_msgs
+                    self._error_msg = ""
+            except ValueError as exc:
+                self._logger.exception("Telemetry document publish timed out %s", exc)
+            time.sleep(5)
 
-if __name__ =="__main__":
-    import os
-
-    mq = MQTT()

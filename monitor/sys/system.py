@@ -51,7 +51,7 @@ import struct
 from pathlib import Path
 from monitor.sys import kernel
 from monitor.sys import decorators
-# from monitor.cloud.mqtt import MQTT
+from monitor.cloud.mqtt import MQTT
 # from monitor.microscope.microscope import Microscope as scope
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
@@ -79,7 +79,7 @@ def main():
         else:
             _logger.info("%s", result)
         events.system_status.trigger(msg="Initializing modules")
-        # _mqtt = MQTT()
+        _mqtt = MQTT()
         SetpointScheduler()
         ImagingScheduler()
         # load runtime models from cache into state manager
@@ -92,7 +92,10 @@ def main():
         events.system_status.trigger(msg="Initializing hardware link")
         time.sleep(1)
         events.system_status.trigger(msg="Loading cloud resources")
-        # _mqtt.start()
+        _logger.info("Starting MQTT...")
+        _mqtt.start()
+        _logger.info("Done!")
+
     except BaseException as exc:
         _logger.exception(exc)
         events.system_status.trigger(
