@@ -54,5 +54,6 @@ jobs:
         run: |
           sudo apt update
           xargs -a apt-packages.txt sudo apt install -y
+          python3 -m pip install --upgrade -r pre-requirements.txt --ignore-installed
           python3 -m pip install .
           python3 -c 'import monitor; print(monitor.__version__)'
