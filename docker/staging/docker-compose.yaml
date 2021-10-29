@@ -20,7 +20,7 @@ services:
     volumes:
       - ../../:/app
     environment:
-      - ID=a7ac2d3e-055a-49da-8b1a-c8ccee7b5bbe
+      - ID=${ID}
       - SDL_FBDEV=/dev/fb0
       - SDL_VIDEODRIVER=fbcon
       - SDL_VIDEO_CENTERED=1
