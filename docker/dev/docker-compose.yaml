@@ -27,6 +27,7 @@ services:
   monitor:
     container_name: monitor
     depends_on:
+      - rmq
       - novnc
     build:
       context: ../../
@@ -44,7 +45,7 @@ services:
       - SNAP_DATA=/app/monitor/logs
       - SNAP_COMMON=/app/instance
       - MPLBACKEND=Agg
-      - MONITOR_CACHE=${SNAP_COMMON}/cache
+      - MONITOR_CACHE=/app/instance/cache
       - RABBITMQ_ADDR=rmq:5672
       - API_BASE_URL=https://api.dev.incuvers.com
       - API_BASE_PATH=/v1
