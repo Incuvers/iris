@@ -39,6 +39,7 @@ This target requires `yamllint` (all `.yaml` files), `shellcheck` (binaries loca
 
 ## Developers Guide
 Welcome to the team. Please see the [developers guide](./dev/README.md) for Incuvers guidelines and best practices.
+http://localhost:8080/vnc.html
 
 ## Development Team
 David Sean (CTO) (david@incuvers.com)\
