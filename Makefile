@@ -40,8 +40,6 @@ setup: ## setup RPi dev environment from a fresh ubuntu 20.04 install
 	@printf "${OKB}Installing iris apt package dependancies ...${NC}\n";
 	@sudo apt update;
 	@xargs -a apt-packages.txt sudo apt install -y;
-	@printf "${OKB}Building TIS dependancies from source${NC}\n";
-	@./scripts/tis-install.sh;
 	@printf "${OKB}Installing iris python package dependancies to root ...${NC}\n";
 	@sudo -H python3 -m pip install -r --upgrade pre-requirements.txt --ignore-installed;
 	@sudo -H python3 -m pip install -r requirements.txt;
