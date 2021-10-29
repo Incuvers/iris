@@ -1,0 +1,38 @@
+version: "2.9"
+services:
+  rmq:
+    container_name: rmq
+    image: rabbitmq:3.9-management
+    volumes:
+      - "../rabbitmq/:/etc/rabbitmq/"
+    ports:
+      # expose for rmq web client
+      - "15672:15672"
+
+  monitor:
+    container_name: monitor
+    depends_on:
+      - rmq 
+    build:
+      context: ../../
+      dockerfile: docker/dev/Dockerfile
+    volumes:
+      - ../../:/app
+    environment:
+      - ID=a7ac2d3e-055a-49da-8b1a-c8ccee7b5bbe
+      - SNAP=/app
+      - SNAP_DATA=/app/monitor/logs
+      - SNAP_COMMON=/app/instance
+      - AWS_TT=aws/things/${ID}/telemetry/
+      - RABBITMQ_ADDR=rmq:5672
+      - MPLBACKEND=Agg
+      - API_BASE_URL=https://api.staging.incuvers.com
+      - API_BASE_PATH=/v1
+
+  hwi:
+    container: hwi
+    image: ghcr.io/hwi:master
+    depends_on:
+      - rmq
+    environment:
+      - RABBITMQ_HOST=rmq
