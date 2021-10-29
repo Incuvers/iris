@@ -31,7 +31,6 @@ jobs:
             prefix=
             suffix=
           images: |
-            masterbom/api
             ghcr.io/${{ github.repository }}
       - name: Build and push Docker images
         id: docker_build
