@@ -1,9 +1,6 @@
 #!/bin/bash
 
-source ./instance/snapcraft.env
-
-# shellcheck source=./instance/ci.env
-source "$SNAP_COMMON"/ci.env
+source .env
 
 # handle all non-zero error status codes
 trap 'handler $? $LINENO' ERR
@@ -15,7 +12,7 @@ handler () {
         exit "$1"
     fi
 }
-
+export ID=""
 printf "%b" "${OKB}Executing unittest suite${NC}\n"
 # execute case unittests or entire suite
 if [ -z "$1" ]; then
