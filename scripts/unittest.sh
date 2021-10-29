@@ -12,7 +12,7 @@ handler () {
         exit "$1"
     fi
 }
-
+export ID=""
 printf "%b" "${OKB}Executing unittest suite${NC}\n"
 # execute case unittests or entire suite
 if [ -z "$1" ]; then
