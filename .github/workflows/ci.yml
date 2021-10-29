@@ -16,23 +16,27 @@ jobs:
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
-      - name: Unittest Suite
+      - name: Install dependancies
         run: |
+          xargs -a apt-packages.txt sudo apt install -y
           python3 -m pip install freezegun
           python3 -m pip install -r requirements.txt
-          make unit
+      - name: Run unittest suite
+        run: make unit
   lint:
     name: lint suite
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
-      - name: Run lint directive
+      - name: Install dependancies
         run: |
+          xargs -a apt-packages.txt sudo apt install -y
           python3 -m pip install flake8
           python3 -m pip install -r requirements.txt
           touch .env
-          make lint
+      - name: Run lint directive
+        run: make lint
   pip:
     name: pip package
     runs-on: ubuntu-latest
@@ -46,7 +50,7 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: install monitor
+      - name: Install monitor
         run: |
           xargs -a apt-packages.txt sudo apt install -y
           python3 -m pip install .
