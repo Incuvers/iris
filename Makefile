@@ -23,19 +23,17 @@ unit: ## execute monitor unittest suite, for single case make unit case=<NAME>
 lint: ## lint codebase using a combination of yamllint, shellcheck and flake8
 	@./scripts/lint.sh
 
-.PHONY: env
-env: ## build docker monitor environment and mount
-	@./scripts/ci.sh build
+.PHONY: config
+dev: ## send env delta to docker dev directory
+	@./scripts/config.sh
+
+.PHONY: dev
+dev: config ## build development stack
+	@./scripts/dev.sh
 
 .PHONY: clean
 clean: ## clean docker images and containers
 	@./scripts/clean.sh
-
-.PHONY: cache
-cache: ## clean cache
-	@printf "${OKB}Deleting cached objects ...${NC}\n";
-	@sudo rm /etc/iris/SNAP_COMMON/cache/*.json
-	@printf "${OKG} ✓ ${NC} Complete\n";
 
 .PHONY: setup
 setup: ## setup RPi dev environment from a fresh ubuntu 20.04 install
@@ -51,28 +49,3 @@ setup: ## setup RPi dev environment from a fresh ubuntu 20.04 install
 	@sudo cp ./dev/BOOT/firmware/*.* /boot/firmware/.
 	@printf "${OKB}Reboot to apply boot config changes.${NC}\n"
 	@printf "${OKG} ✓ ${NC} Complete\n";
-
-.PHONY: monitor
-monitor: ## Purge logs and run monitor app outside of package context.
-	@rm -f monitor/logs/*.log*
-	@sudo ./bin/monitor -d
-
-.PHONY: service
-service: ## Purge logs and run monitor app in service mode outside of package context.
-	@rm -f monitor/logs/*.log*
-	@sudo ./bin/monitor -d -m service
-
-.PHONY: dev
-dev: dist ## build iris python package, save certs for dev environment to /etc run monitor outside of /monitor scope
-	@printf "${OKB}Starting development environment${NC}"
-	@sudo daemon-dev
-	@sudo runwebserver-dev &
-	@sudo monitor -d
-
-.PHONY: dist
-dist: ## build iris python distribution
-	@python3 -m pip uninstall -y iris;
-	@printf "${OKB}Installing iris ...\n${NC}"
-	@python3 -m pip install --upgrade pip
-	@python3 -m pip install . --ignore-installed
-	@printf "${OKG} ✓ ${NC} iris installed\n";
