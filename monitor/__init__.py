@@ -14,6 +14,10 @@ import yaml
 import logging
 import logging.config
 from pathlib import Path
+from monitor.__version__ import __version__
+
+logger = logging.getLogger(__name__)
+logger.info("Incuvers™ Monitor Version: %s", __version__)
 
 LOG_PATH = str(Path(__file__).parent.joinpath('logs/'))
 LOG_CONFIG_FILENAME = "config.yml"
