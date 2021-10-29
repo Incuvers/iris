@@ -23,5 +23,3 @@ libsdl-mixer1.2-dev
 libsdl-ttf2.0-dev
 libfreetype6-dev
 libportmidi-dev
-avahi-utils
-network-manager

@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.9]
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -42,5 +42,6 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install monitor
         run: |
+          xargs -a apt-packages.txt sudo apt install -y
           python3 -m pip install .
           python3 -c 'import monitor; print(monitor.__version__)'
