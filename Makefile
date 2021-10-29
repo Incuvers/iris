@@ -24,7 +24,7 @@ lint: ## lint codebase using a combination of yamllint, shellcheck and flake8
 	@./scripts/lint.sh
 
 .PHONY: config
-dev: ## send env delta to docker dev directory
+config: ## send env delta to docker dev directory
 	@./scripts/config.sh
 
 .PHONY: dev
