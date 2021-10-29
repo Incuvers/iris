@@ -12,7 +12,7 @@ on:
 jobs:
   unittest:
     name: unittest suite
-    runs-on: [self-hosted, linux, arm64, tests]
+    runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
@@ -21,9 +21,7 @@ jobs:
           make unit
   lint:
     name: lint suite
-    runs-on: [self-hosted, linux, arm64, tests]
-    container:
-      image: incuvers/monitor:latest
+    runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
         uses: actions/checkout@v2
@@ -31,22 +29,19 @@ jobs:
         run: make lint
   pip:
     name: pip package
-    runs-on: [self-hosted, linux, arm64, tests]
-    container:
-      image: incuvers/monitor:latest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
     steps:
-      - name: Check out the codebase.
+      - name: checkout
         uses: actions/checkout@v2
-      - name: Install monitor
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: install monitor
         run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install . --ignore-installed
-          python3 -c "import monitor; monitor.__version__"
-  prune:
-    name: prune docker images and cache
-    runs-on: [self-hosted, linux, arm64, tests]
-    steps:
-      - name: Prune
-        run: docker image prune -af
-      - name: Report PV Storage
-        run: df -h
+          python3 -m pip install .
+          python3 -c 'import monitor; print(monitor.__version__)'
+
