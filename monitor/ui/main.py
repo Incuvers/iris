@@ -150,8 +150,12 @@ class UserInterfaceController:
         """
         self._logger.info("initializing pygame menu...")
         pygame.display.init()
+        self._logger.debug(pygame.display.Info())
+        self._logger.debug("Display initialized")
         pygame.mouse.set_visible(False)
-        screen = pygame.display.set_mode()
+        self._logger.debug("Mouse visibility removed")
+        screen = pygame.display.set_mode(flags=pygame.NOFRAME | pygame.FULLSCREEN |pygame.HWSURFACE)
+        self._logger.debug("Display mode set")
         # update surface values based on screen resolution
         surface_height = screen.get_height()
         surface_width = screen.get_width()
