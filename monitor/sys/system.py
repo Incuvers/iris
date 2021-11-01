@@ -37,6 +37,7 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
+from monitor.rmq.client import RMQClient
 from monitor.scheduler.imaging import ImagingScheduler
 import time
 import os
@@ -80,6 +81,10 @@ def main():
             _logger.info("%s", result)
         events.system_status.trigger(msg="Initializing modules")
         # _mqtt = MQTT()
+        # RMQ Event config
+        host = os.environ['RABBITMQ_ADDR'].split(':')[0]
+        port = int(os.environ['RABBITMQ_ADDR'].split(':')[1])
+        RMQClient(host, port)
         SetpointScheduler()
         ImagingScheduler()
         # load runtime models from cache into state manager
@@ -88,8 +93,6 @@ def main():
             device = state.device
             lab_id = device.lab_id
         _logger.info("Lab ID: %s", lab_id)
-        time.sleep(1)
-        events.system_status.trigger(msg="Initializing hardware link")
         time.sleep(1)
         events.system_status.trigger(msg="Loading cloud resources")
         # _mqtt.start()
