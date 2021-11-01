@@ -57,6 +57,14 @@ loggers:
     level: 'DEBUG'
     handlers: ['schedulerHandler']
     propagate: false
+  pika:
+    level: 'DEBUG'
+    handlers: ['rmqHandler']
+    propagate: false 
+  monitor.rmq:
+    level: 'DEBUG'
+    handlers: ['rmqHandler']
+    propagate: false
   monitor.environment.cache:
     level: 'DEBUG'
     handlers: ['cacheHandler']
@@ -155,6 +163,13 @@ handlers:
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
     filename: monitor/logs/cache.log
+    mode: 'a'
+    maxBytes: 1000000
+  rmqHandler:
+    level: 'DEBUG'
+    class: 'logging.handlers.RotatingFileHandler'
+    formatter: default
+    filename: monitor/logs/rmq.log
     mode: 'a'
     maxBytes: 1000000
   consoleHandler:
