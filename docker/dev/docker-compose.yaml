@@ -9,6 +9,8 @@ services:
     ports:
       # expose for rmq web client
       - "15672:15672"
+    networks:
+      - iris
 
   novnc:
     container_name: novnc
@@ -36,6 +38,7 @@ services:
       - ../../:/app
     networks:
       - x11
+      - iris
     environment:
       - ID=${ID}
       - DISPLAY=novnc:0.0
@@ -52,5 +55,17 @@ services:
       - API_BASE_URL=https://api.dev.incuvers.com
       - API_BASE_PATH=/v1
 
+  hwi:
+    container_name: hwi
+    image: ghcr.io/incuvers/hwi:master
+    depends_on:
+      - rmq
+    networks:
+      - iris
+    environment:
+      - RABBITMQ_ADDR=rmq:5672
+    
+
 networks:
   x11:
+  iris:
