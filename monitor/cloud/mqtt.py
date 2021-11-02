@@ -72,7 +72,7 @@ class MQTT():
         ca = "./secrets/AmazonRootCA1.pem" 
         cert = "./secrets/certificate.pem.crt"
         private = "./secrets/private.pem.key"
-        self.id ="802cbf29-da47-47e9-9adb-a82b42cefa87"
+        self.id = "802cbf29-da47-47e9-9adb-a82b42cefa87"
         self.aws_tt = f"aws/things/{self.id}/telemetry/"
         self.topic_desired = f"aws/things/{self.id}/desired/"
         self.aws_ip = f"aws/things/{self.id}/new_image/"
@@ -89,18 +89,20 @@ class MQTT():
             # self.iot_endpoint = context.get_env('IOT_BASE_URL')
 
         self.client = mqtt.Client(client_id=self.id)
-        self.ssl_context = self._configure_credentials(cert_path=cert, key_path=private, ca_path=ca)
-        self._logger.info("Instantiation successful.")
-        
+        self._configure_credentials(cert_path=cert, key_path=private, ca_path=ca)
 
-    def _configure_credentials(self, cert_path=None, key_path=None, ca_path=None):
+        self._logger.info("Instantiation successful.")
+
+
+    def _configure_credentials(self, cert_path=None, key_path=None, ca_path=None) ->None:
         try:
             #debug print opnessl version
             ssl_context = ssl.create_default_context()
             ssl_context.set_alpn_protocols(["x-amzn-mqtt-ca"])
             ssl_context.load_verify_locations(cafile=ca_path)
             ssl_context.load_cert_chain(certfile=cert_path, keyfile=key_path)
-            return  ssl_context
+            self.client.tls_set_context(context=ssl_context)
+
         except Exception as exc:
             print("exception ssl_alpn()")
             raise exc
@@ -115,12 +117,13 @@ class MQTT():
         print("starting =MQTT")
         while True:
             try:
-                # auto calls on_connect_callback
+                # auto calls on_connect_callback (if set)
+                # self.client.connect(self.iot_endpoint, port=conf.PORT)
+                self.client.connect(self.iot_endpoint, port=443)
+                self.client.loop_start()
                 self._configure_connection()
-                self.client.publish(f"aws/things/{self.id}/telemetry/", json.dumps({'hi':'mom'}), qos=0)
-                self.client.publish("aws/things/802cbf29-da47-47e9-9adb-a82b42cefa87/telemetry/", json.dumps({'hi':'mom'}), qos=0)
+                self._logger.info('connect ok.')
 
-                self._report_telemetry()
             except ConnectionError:
                 with StateManager() as state:
                     device = state.device
@@ -129,7 +132,6 @@ class MQTT():
                 self._logger.warning("Connection to mqtt failed. Entering reconnection phase...")
                 time.sleep(conf.RECONNNECT)
             else:
-                self._on_connect()
                 break
 
     def _on_connect(self, *args) -> None:
@@ -137,6 +139,19 @@ class MQTT():
         MQTT connect on callback
         """
         self._logger.info("Connected to MQTT broker")
+
+        res = self.client.subscribe(self.topic_desired, 0)
+        self._logger.info("subscribe results: %s", res)
+        self.client.message_callback_add(self.topic_desired, self._desired_topic_resolver)
+
+        res = self.client.subscribe(self.aws_ip, 0)
+        self._logger.info("subscribe results: %s", res)
+        self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
+
+        # subscribe to mulitple topics                    
+        self._report_telemetry()
+
+
         # attempt jwt request
         events.renew_jwt.trigger()
         events.new_device.trigger()
@@ -162,7 +177,6 @@ class MQTT():
         configures the connection required to successfully communicate with the cloud services
         :raises ConnectionError: If connection is unssuccessl indicating the device is offline
         """
-        self.client.tls_set_context(context=self.ssl_context)
 
         # self.configureAutoReconnectBackoffTime(1, 32, 20)
         # self.configureConnectDisconnectTimeout(5)  # 5 sec
@@ -177,24 +191,8 @@ class MQTT():
         # last_will_payload = json.dumps({'state': {'reported': {'is_online': False}}})
         # with ContextManager() as context:
         #     self.client.will_set(context.get_env('AWS_LWT'), last_will_payload, 0, False)
-        try:
-            self.client.connect(self.iot_endpoint, port=conf.PORT)
-            self.client.loop_start()
+        self.client.on_connect=self._on_connect
 
-            self._logger.info('trying tp publish..')
-            self.client.publish(f"aws/things/802cbf29-da47-47e9-9adb-a82b42cefa87/telemetry/", json.dumps({'hi':'mom'}), qos=0)
-            self._logger.info('ok!!!')
-
-        except ValueError as exc:
-            self._logger.warning(
-                "Unable to configure a connection with the cloud services: %s", exc)
-            raise ConnectionError from exc
-
-        # subscribe to mulitple topics
-        # res = self.client.subscribe([(self.aws_ip, 0), (self.topic_desired, 0)])
-        # self._logger.info("subscribe results: %s", res)
-        # self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
-        # self.client.message_callback_add(self.topic_desired, self._desired_topic_resolver)
         self._logger.info("Successfully configured MQTT connection")
 
 
@@ -265,6 +263,8 @@ class MQTT():
         """
         Task resolver for the desired/write topic subscriptions
         """
+        self._logger.info("Received payload from desired topic")
+
         try:
             payload: dict = json.loads(message.payload)
         except (JSONDecodeError, TypeError) as exc:
@@ -274,7 +274,7 @@ class MQTT():
         if req_id is None:
             self._logger.info("Missing req_id, ignoring.")
             return
-        self._delta_resolver(message, req_id)
+        self._delta_resolver(json.loads(message.payload), req_id)
 
     @tm.lock(tm.mqtt_lock)
     def _delta_resolver(self, requests: dict, req_id: str) -> None:
@@ -382,6 +382,7 @@ class MQTT():
             try:
                 epoch = round(datetime.now(timezone.utc).timestamp())
                 self._logger.info("reporting telemetry results: %s", epoch)
+                self.client.publish(self.aws_tt, json.dumps({"tele_test": epoch}), qos=0)
 
                 # publish long point once every 15 minutes
                 if epoch >= self.last_lpt_publish + (15 * 60):
