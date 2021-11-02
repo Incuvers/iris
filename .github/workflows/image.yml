@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     name: Image build & push
-    runs-on: [self-hosted, linux, arm64, docker]
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
