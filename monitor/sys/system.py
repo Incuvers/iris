@@ -79,7 +79,7 @@ def main():
         else:
             _logger.info("%s", result)
         events.system_status.trigger(msg="Initializing modules")
-        _mqtt = MQTT()
+        _mqtt = MQTT(device_id=os.environ.get('ID', None))
         SetpointScheduler()
         ImagingScheduler()
         # load runtime models from cache into state manager

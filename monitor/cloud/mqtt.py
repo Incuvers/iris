@@ -47,14 +47,13 @@ from monitor.events.registry import Registry as events
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 
-
 class MQTT():
     """
     this class is responsible for cloud operations/communications both reporting and callback notification
     from the shadow service. This object is born in the flask webserver upon starting the flask application
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """
         :param sensors: sensorframe object
         :param clientID: client id required by mqtt
@@ -69,42 +68,38 @@ class MQTT():
         self._error_msg = ""
         # last long point type publish time
         self.last_lpt_publish = 0
-        ca = "./secrets/AmazonRootCA1.pem" 
-        cert = "./secrets/certificate.pem.crt"
-        private = "./secrets/private.pem.key"
-        self.id = "802cbf29-da47-47e9-9adb-a82b42cefa87"
-        self.aws_tt = f"aws/things/{self.id}/telemetry/"
-        self.topic_desired = f"aws/things/{self.id}/desired/"
-        self.aws_ip = f"aws/things/{self.id}/new_image/"
+        
+        if 'device_id' in kwargs:
+            device_id = kwargs['device_id']
+        else:
+            self._logger.critical("No client ID")
+
+        self.aws_tt = f"aws/things/{device_id}/telemetry/"
+        self.topic_desired = f"aws/things/{device_id}/desired/"
+        self.aws_ip = f"aws/things/{device_id}/new_image/"
         self.iot_endpoint = "a1h6zgnf68qmlj-ats.iot.ca-central-1.amazonaws.com"
 
-        # with ContextManager() as context:
-            # pem = context.get_env('AWS_PEM')
-            # key = context.get_env('AWS_KEY')
-            # cert = context.get_env('AWS_CERT')
-            # self.aws_tt = context.get_env('AWS_TT')
-            # self.aws_ip = context.get_env('AWS_IP')
-            # hard-code for now
-            # self.topic_desired = context.get_env('AWS_DT')
-            # self.iot_endpoint = context.get_env('IOT_BASE_URL')
-
-        self.client = mqtt.Client(client_id=self.id)
-        self._configure_credentials(cert_path=cert, key_path=private, ca_path=ca)
+        self.client = mqtt.Client(client_id=device_id)
+        self._configure_credentials(**kwargs)
 
         self._logger.info("Instantiation successful.")
 
 
-    def _configure_credentials(self, cert_path=None, key_path=None, ca_path=None) ->None:
+    def _configure_credentials(self, **kwargs) ->None:
+        ca_path = "./secrets/AmazonRootCA1.pem" 
+        cert_path = "./secrets/certificate.pem.crt"
+        private_key_path = "./secrets/private.pem.key"
+
         try:
             #debug print opnessl version
             ssl_context = ssl.create_default_context()
             ssl_context.set_alpn_protocols(["x-amzn-mqtt-ca"])
             ssl_context.load_verify_locations(cafile=ca_path)
-            ssl_context.load_cert_chain(certfile=cert_path, keyfile=key_path)
+            ssl_context.load_cert_chain(certfile=cert_path, keyfile=private_key_path)
             self.client.tls_set_context(context=ssl_context)
 
         except Exception as exc:
-            print("exception ssl_alpn()")
+            self._logger.error("exception _configure_credentials(): %s", exc)
             raise exc
 
     @tm.threaded(daemon=True)
@@ -114,7 +109,6 @@ class MQTT():
         connection fails we retry the connection setup process until the connection is successful
         """
         events.system_status.trigger(msg="Loading Incuvers cloud assets")
-        print("starting =MQTT")
         while True:
             try:
                 # auto calls on_connect_callback (if set)
@@ -132,6 +126,7 @@ class MQTT():
                 self._logger.warning("Connection to mqtt failed. Entering reconnection phase...")
                 time.sleep(conf.RECONNNECT)
             else:
+                self._report_telemetry()
                 break
 
     def _on_connect(self, *args) -> None:
@@ -140,6 +135,7 @@ class MQTT():
         """
         self._logger.info("Connected to MQTT broker")
 
+        # subscribe to mulitple topics                    
         res = self.client.subscribe(self.topic_desired, 0)
         self._logger.info("subscribe results: %s", res)
         self.client.message_callback_add(self.topic_desired, self._desired_topic_resolver)
@@ -147,10 +143,6 @@ class MQTT():
         res = self.client.subscribe(self.aws_ip, 0)
         self._logger.info("subscribe results: %s", res)
         self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
-
-        # subscribe to mulitple topics                    
-        self._report_telemetry()
-
 
         # attempt jwt request
         events.renew_jwt.trigger()
@@ -411,7 +403,6 @@ class MQTT():
                     payload['errors'] = self._error_msg
 
                     self.client.publish(self.aws_tt, json.dumps(payload), qos=0)
-                    print("Just published telemerty!!!")
                     self._logger.debug("Published telemetry document %s", payload)
                     with StateManager() as state:
                         experiment = state.experiment
@@ -422,7 +413,6 @@ class MQTT():
                         self._logger.debug("Published experiment telemetry document %s", payload)
                     # reset the error_msgs
                     self._error_msg = ""
-            except ValueError as exc:
-                self._logger.exception("Telemetry document publish timed out %s", exc)
+            except (ValueError, TypeError) as exc:
+                self._logger.exception("Telemetry document publish failed: %s", exc)
             time.sleep(5)
-
