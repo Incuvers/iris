@@ -48,7 +48,7 @@ class Capture:
             # processing dpc images
             converted_capture = self.captures[index]
             with ContextManager() as context:
-                bg_fname = f'{context.get_env("SNAP_COMMON")}/dpc_background/dpc_{self.dpc_exposure}_{index}.npz'
+                bg_fname = f'{context.get_env("COMMON_DPC")}/dpc_{self.dpc_exposure}_{index}.npz'
             converted_capture = self.background_normalize(converted_capture, bg_fname)
             # only convert to uint8 at the end to preserve data integrity
             converted_capture = converted_capture.astype(np.uint8)

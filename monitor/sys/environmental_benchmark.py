@@ -325,7 +325,7 @@ class EnvironmentBenchmark:
         series = np.asarray(self.series)
         with ContextManager() as context:
             # append extension to filename
-            with open(context.get_env('SNAP_COMMON') + f'/{self.filename}.csv', 'w') as fp:
+            with open(context.get_env('COMMON') + f'/{self.filename}.csv', 'w') as fp:
                 np.savetxt(fp, series,
                            header='Time (minutes), TC, CC, OC, TP, CP, OP',
                            delimiter=',')
@@ -338,7 +338,7 @@ class EnvironmentBenchmark:
         plot_img = self.update_plot()
         img = Image.fromarray(plot_img)
         with ContextManager() as context:
-            fname = f"{context.get_env('SNAP_COMMON')}/{self.filename}.png"
+            fname = f"{context.get_env('COMMON')}/{self.filename}.png"
         img.save(fname, format='png', lossless=False)
 
     def update_plot(self):

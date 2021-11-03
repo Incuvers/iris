@@ -127,7 +127,7 @@ class DeviceWidget(Widget):
         :raises FileNotFoundError: if the path to the avatar img is not found 
         """
         with ContextManager() as context:
-            avatar_path_obj = Path(context.get_env('SNAP_COMMON')).joinpath('device_avatar.png')
+            avatar_path_obj = Path(context.get_env('COMMON')).joinpath('device_avatar.png')
             if avatar_path_obj.is_file():
                 avatar_path = str(avatar_path_obj)
             else:

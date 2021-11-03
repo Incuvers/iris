@@ -104,7 +104,7 @@ class ExperimentWidget(Widget):
         )
         self.font_path = uis.FONT_PATH
         with ContextManager() as context:
-            self.thumbnail_path = context.get_env('SNAP_COMMON') + '/thumbnail.png'
+            self.thumbnail_path = context.get_env('COMMON') + '/thumbnail.png'
             # always render thumbnail if it exists
             if Path(self.thumbnail_path).exists():
                 self.render_dpc()
@@ -118,7 +118,7 @@ class ExperimentWidget(Widget):
 
     def render_dpc(self):
         """
-        Thumbnail preview is available in SNAP_COMMON; render it to the component
+        Thumbnail preview is available in COMMON; render it to the component
         """
         scaling = 1.3
         try:

@@ -33,41 +33,27 @@ Proprietary and confidential
 import time
 import json
 import logging
-from typing import Any, Dict
-import monitor.imaging.constants as IC
+import ssl
+import paho.mqtt.client as mqtt
 
 from datetime import datetime, timezone
 from json.decoder import JSONDecodeError
-from AWSIoTPythonSDK.exception import AWSIoTExceptions
-from AWSIoTPythonSDK.MQTTLib import AWSIoTMQTTShadowClient
 
-from monitor.models.icb import ICB
+# from monitor.models.icb import ICB
 from monitor.exceptions.mqtt import ImageTopicError
-from monitor.environment.state_manager import PropertyCondition, StateManager
+from monitor.environment.state_manager import StateManager
 from monitor.cloud.config import MQTTConfig as conf
-from monitor.environment.context_manager import ContextManager
 from monitor.events.registry import Registry as events
-from monitor.models.imaging_profile import ImagingProfile
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 
-
-def validate_shadow_init(func):
-    def wrapper(self, *args, **kwargs):
-        if self.shadow is not None:
-            func(self, *args, **kwargs)
-        else:
-            self._logger.warning("Shadow has not been initialized. Skipping report")
-    return wrapper
-
-
-class MQTT(AWSIoTMQTTShadowClient):
+class MQTT():
     """
     this class is responsible for cloud operations/communications both reporting and callback notification
     from the shadow service. This object is born in the flask webserver upon starting the flask application
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         """
         :param sensors: sensorframe object
         :param clientID: client id required by mqtt
@@ -78,38 +64,43 @@ class MQTT(AWSIoTMQTTShadowClient):
         # bind logging to config file
         self._logger = logging.getLogger(__name__)
         self.last_calibrated = None
-        # for diff checking
-        self._delta = {}
-        self.shadow = None
+        # self.shadow = None
+        self._error_msg = ""
         # last long point type publish time
         self.last_lpt_publish = 0
-        with StateManager() as state:
-            # subscribe to icb setpoint state changes
-            state.subscribe_property(
-                _type=ICB,
-                _property=PropertyCondition[ICB](
-                    trigger=lambda old_icb, new_icb:
-                        old_icb.tp != new_icb.tp or old_icb.cp != new_icb.cp or old_icb.op != new_icb.op,
-                    callback=self.update_setpoints,
-                    callback_on_init=True
-                )
-            )
-            state.subscribe(ICB, self._report_telemetry)
-            state.subscribe(ImagingProfile, self.update_imaging_settings)
-        with ContextManager() as context:
-            self.id = context.get_env('ID')
-            super().__init__(self.id)
-            pem = context.get_env('AWS_PEM')
-            key = context.get_env('AWS_KEY')
-            cert = context.get_env('AWS_CERT')
-            self.aws_tt = context.get_env('AWS_TT')
-            self.aws_st = context.get_env('AWS_ST')
-            self.aws_ip = context.get_env('AWS_IP')
-            # inherited
-            self.configureEndpoint(context.get_env('IOT_BASE_URL'), conf.PORT)
-        self.configureCredentials(pem, KeyPath=key, CertificatePath=cert)
-        self.client = self.getMQTTConnection()
+        
+        if 'device_id' in kwargs:
+            device_id = kwargs['device_id']
+        else:
+            self._logger.critical("No client ID")
+
+        self.aws_tt = f"aws/things/{device_id}/telemetry/"
+        self.topic_desired = f"aws/things/{device_id}/desired/"
+        self.aws_ip = f"aws/things/{device_id}/new_image/"
+        self.iot_endpoint = "a1h6zgnf68qmlj-ats.iot.ca-central-1.amazonaws.com"
+
+        self.client = mqtt.Client(client_id=device_id)
+        self._configure_credentials(**kwargs)
+
         self._logger.info("Instantiation successful.")
+
+
+    def _configure_credentials(self, **kwargs) ->None:
+        ca_path = "./secrets/AmazonRootCA1.pem" 
+        cert_path = "./secrets/certificate.pem.crt"
+        private_key_path = "./secrets/private.pem.key"
+
+        try:
+            #debug print opnessl version
+            ssl_context = ssl.create_default_context()
+            ssl_context.set_alpn_protocols(["x-amzn-mqtt-ca"])
+            ssl_context.load_verify_locations(cafile=ca_path)
+            ssl_context.load_cert_chain(certfile=cert_path, keyfile=private_key_path)
+            self.client.tls_set_context(context=ssl_context)
+
+        except Exception as exc:
+            self._logger.error("exception _configure_credentials(): %s", exc)
+            raise exc
 
     @tm.threaded(daemon=True)
     def start(self) -> None:
@@ -120,9 +111,13 @@ class MQTT(AWSIoTMQTTShadowClient):
         events.system_status.trigger(msg="Loading Incuvers cloud assets")
         while True:
             try:
-                # auto calls on_connect_callback
+                # auto calls on_connect_callback (if set)
+                # self.client.connect(self.iot_endpoint, port=conf.PORT)
+                self.client.connect(self.iot_endpoint, port=443)
+                self.client.loop_start()
                 self._configure_connection()
-                self.shadow_document_init()
+                self._logger.info('connect ok.')
+
             except ConnectionError:
                 with StateManager() as state:
                     device = state.device
@@ -131,17 +126,27 @@ class MQTT(AWSIoTMQTTShadowClient):
                 self._logger.warning("Connection to mqtt failed. Entering reconnection phase...")
                 time.sleep(conf.RECONNNECT)
             else:
-                self._on_connect()
+                self._report_telemetry()
                 break
 
-    @tm.set_name("aws-connect")
-    @validate_shadow_init
-    def _on_connect(self) -> None:
+    def _on_connect(self, *args) -> None:
         """
         MQTT connect on callback
         """
         self._logger.info("Connected to MQTT broker")
-        self._report_shadow(payload={'state': {'reported': {"is_online": True}}})
+
+        # subscribe to mulitple topics                    
+        res = self.client.subscribe(self.topic_desired, 0)
+        self._logger.info("subscribe results: %s", res)
+        self.client.message_callback_add(self.topic_desired, self._desired_topic_resolver)
+
+        res = self.client.subscribe(self.aws_ip, 0)
+        self._logger.info("subscribe results: %s", res)
+        self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
+        
+        # really gotta make sure the subscribe is finilized before attempting a jwt renew...
+        self.client.loop()
+
         # attempt jwt request
         events.renew_jwt.trigger()
         events.new_device.trigger()
@@ -151,8 +156,7 @@ class MQTT(AWSIoTMQTTShadowClient):
             state.commit(device)
 
     @tm.set_name("aws-discon")
-    @validate_shadow_init
-    def _on_disconnect(self) -> None:
+    def _on_disconnect(self, *args) -> None:
         """
         MQTT disconnect callback
         """
@@ -168,91 +172,70 @@ class MQTT(AWSIoTMQTTShadowClient):
         configures the connection required to successfully communicate with the cloud services
         :raises ConnectionError: If connection is unssuccessl indicating the device is offline
         """
-        self.configureAutoReconnectBackoffTime(1, 32, 20)
-        self.configureConnectDisconnectTimeout(5)  # 5 sec
-        self.configureMQTTOperationTimeout(5)  # 5 sec
-        self.client.configureOfflinePublishQueueing(-1)
-        self.client.configureDrainingFrequency(2)
+
+        # self.configureAutoReconnectBackoffTime(1, 32, 20)
+        # self.configureConnectDisconnectTimeout(5)  # 5 sec
+        # self.configureMQTTOperationTimeout(5)  # 5 sec
+        # self.configureOfflinePublishQueueing(-1)
+        # self.configureDrainingFrequency(2)
         # configure connection callbacks
-        self.onOnline = self._on_connect
-        self.onOffline = self._on_disconnect
+        # self.onOnline = self._on_connect
+        # self.onOffline = self._on_disconnect
+
         # configure last will payload
-        last_will_payload = json.dumps({'state': {'reported': {'is_online': False}}})
-        with ContextManager() as context:
-            self.configureLastWill(context.get_env('AWS_LWT'), last_will_payload, 0)
-        try:
-            self.connect(keepAliveIntervalSecond=10)
-        except (AWSIoTExceptions.connectTimeoutException, AWSIoTExceptions.connectError) as exc:
-            self._logger.warning(
-                "Unable to configure a connection with the cloud services: %s", exc)
-            raise ConnectionError from exc
-        try:
-            # creating shadow handler after AWSIoTMQTTShadowClient.connect() as per documentation
-            with ContextManager() as context:
-                self.shadow = self.createShadowHandlerWithName(context.get_env('ID'), True)
-            self.shadow.shadowRegisterDeltaCallback(self._shadow_delta_response)
-            # subscribe to imaging preview MQTT channel
-            self.client.subscribe(self.aws_ip, 0, self._img_topic_resolver)
-        except (AWSIoTExceptions.subscribeTimeoutException, AWSIoTExceptions.subscribeError) as exc:
-            self._logger.exception("Subscribe timeout exception detected: %s", exc)
-            raise ConnectionError from exc
+        # last_will_payload = json.dumps({'state': {'reported': {'is_online': False}}})
+        # with ContextManager() as context:
+        #     self.client.will_set(context.get_env('AWS_LWT'), last_will_payload, 0, False)
+        self.client.on_connect=self._on_connect
+
         self._logger.info("Successfully configured MQTT connection")
 
-    def shadow_document_init(self):
-        """
-        Verify and initialize the shadow document if not present.
 
-        :raises ConnectionError: if the shadow get method fails
-        """
-        try:
-            if self.shadow is not None:
-                self.shadow.shadowGet(self._shadow_get_response, 5)
-        except (AWSIoTExceptions.subscribeTimeoutException, AWSIoTExceptions.subscribeError) as exc:
-            self._logger.exception("Subscribe timeout exception detected: %s", exc)
-            raise ConnectionError from exc
-        self._logger.info("Verified shadow documents")
+    def _generate_shadow_document(self) -> dict:
+        """Construct a dictionary having the reported part of the shadow document
+        Note that the shadow is no longer used in the AWS-style (using a shoado service).
+        Instead we are generating and publishing the full contents continuously over telemetry.
 
-    @tm.set_name("shadow-get-response")
-    def _shadow_get_response(self, shadow_document: str, responseStatus: str = None, token=None):
+        :return: The reported section of a classic shadow document
+        :rtype: dict
         """
-        :param shadow_document: shadow document associated with the device
-        :param responseStatus: status will return accepted if it's a valid response
-        :param token: returning back the id we passed into the function
-        """
-        if responseStatus == "accepted":
-            shadow: Dict[str, Dict[str, Any]] = json.loads(shadow_document)
-            self._logger.debug("Shadow reset parsing on %s", shadow)
-            # determine if shadow requires a reset
-            if shadow.get('state') is None or "desired" not in shadow['state'].keys():
-                self._logger.info(
-                    "Shadow document is empty. Repopulating with local shadow template.")
-                self._report_shadow(payload={'state': self._generate_shadow_document()})
-            elif shadow['state']['desired'].get('refresh') is None:
-                self._logger.info(
-                    "Shadow document is empty. Repopulating with local shadow template.")
-                self._report_shadow(payload={'state': self._generate_shadow_document()})
-            else:
-                with StateManager() as state:
-                    icb = state.icb
-                    icb.tp = shadow['state']['desired'].get('TP')
-                    icb.op = shadow['state']['desired'].get('OP')
-                    icb.cp = shadow['state']['desired'].get('CP')
-                    while not icb.initialized:
-                        self._logger.warning("ICB state uninitialized. Waiting for initialization ...")
-                        time.sleep(1)
-                        icb = state.icb
-                    # update cached setpoints with previously pushed values
-                    state.commit(icb, source=True)
-                with StateManager() as state:
-                    imaging_profile = state.imaging_profile
-                    imaging_profile.setattrs(**shadow['state']['desired'].get('imaging_settings'))
-                    state.commit(imaging_profile, source=True)
-            # verify IRIS state variables match with MQTT otherwise use the current IRIS settings as the source of truth
-        else:
-            self._logger.error(
-                "Device shadow update request %s rejected with response status: %s", token, responseStatus)
+        # populate everythiing the shadow used to have, including redundant data.
+        # Just naively duplicate everything first before pruning.
+        # shadow skeleton
+        shadow_payload = {'state': {'reported': {}}}
+        # JWT --- no need, not including
+        # Refresh --- no need, not including
+        # Setpoints --- can be pruned out later
+        with StateManager() as state:
+            icb = state.icb
+            shadow_payload['state']['reported']['TP'] = icb.tp
+            shadow_payload['state']['reported']['PP'] = icb.op
+            shadow_payload['state']['reported']['CP'] = icb.cp
+        # Imaging settings
+        with StateManager() as state:
+            imaging_profile = state.imaging_profile
+            imaging_payload = {
+                'dpc_exposure': imaging_profile.dpc_exposure,
+                'dpc_exposure_min': imaging_profile.dpc_exposure_min,
+                'dpc_exposure_max': imaging_profile.dpc_exposure_max,
+                'gfp_exposure': imaging_profile.gfp_exposure,
+                'gfp_exposure_min': imaging_profile.gfp_exposure_min,
+                'gfp_exposure_max': imaging_profile.gfp_exposure_max,
+                'dpc_gain': imaging_profile.dpc_gain,
+                'gfp_gain': imaging_profile.gfp_gain,
+                'gain_min': imaging_profile.gain_min,
+                'gain_max': imaging_profile.gain_max,
+                'dpc_brightness': imaging_profile.dpc_brightness,
+                'gfp_brightness': imaging_profile.dpc_brightness,
+                'brightness_min': imaging_profile.brightness_min,
+                'brightness_max': imaging_profile.brightness_max,
+                'dpc_inner_radius': imaging_profile.dpc_inner_radius,
+                'dpc_outer_radius': imaging_profile.dpc_outer_radius
+            }
+            shadow_payload['state']['reported']['imaging_payload'] = imaging_payload
+            return shadow_payload
 
-    @tm.threaded(daemon=True)
+    @ tm.threaded(daemon=True)
     def _img_topic_resolver(self, client, userdata, message) -> None:
         """
         Task resolver for the imaging topic related subscriptions
@@ -270,59 +253,45 @@ class MQTT(AWSIoTMQTTShadowClient):
         elif payload.get('type') == "gfp-capture":
             events.preview_pipeline.begin(gfp=True)
 
-    @tm.set_name("delta-response")
-    def _shadow_delta_response(self, delta_str: str, responseStatus: str, token) -> None:
+    @ tm.threaded(daemon=True)
+    def _desired_topic_resolver(self, client, userdata, message) -> None:
         """
-        Resolves shadow delta trigger into 3 components: JWT refresh, device setting refresh, or a
-        setpoint refresh. It then triggers events to be executed which when complete resolve the
-        shadow delta. If the process is not completed, the delta will not be resolved and this
-        callback will be triggered again.
-        :param delta: delta in desired and reported shadow document
-        :param responseStatus: aws standard for shadow callback
-        :param token: aws standard for shadow callback
+        Task resolver for the desired/write topic subscriptions
         """
-        events.cloud_sync.trigger(True)
-        if responseStatus != f"delta/{self.id}":
-            self._logger.error("Device shadow delta rejected with response: %s", responseStatus)
+        self._logger.info("Received payload from desired topic")
+
+        try:
+            payload: dict = json.loads(message.payload)
+        except (JSONDecodeError, TypeError) as exc:
+            raise ImageTopicError from exc
+        self._logger.info("Received payload: %s from subscriber topic: %s", payload, message.topic)
+        req_id = payload.get('req_id')
+        if req_id is None:
+            self._logger.info("Missing req_id, ignoring.")
             return
-        _requests = {}
-        self._logger.info("Device shadow delta %s accepted and updated with: %s", token, delta_str)
-        # enable syncing status
-        inbound_delta = json.loads(delta_str)
-        delta_state = inbound_delta['state']
-        # generate the request delta payload with only new or updated keys
-        request_delta = self.filter_delta(self._delta, delta_state)
-        self._logger.debug("Request delta: %s", request_delta)
-        # update cached delta to match previous inbound delta
-        self._delta = delta_state
-        # construct request dict
-        for key in request_delta:
-            self._logger.info("%s in delta", key)
-            _requests[key] = request_delta[key]
-        self._logger.info("Shadow Delta Requests: %s", _requests)
-        # check the delta requests list and apply the resolver if new requests are inbound
-        if _requests != {}:
-            self._delta_resolver(_requests)
-        # disable sync status (keep thread alive for 1 second to show sync status to user)
-        time.sleep(1)
-        events.cloud_sync.trigger(False)
+        self._delta_resolver(json.loads(message.payload)['state']['desired'], req_id)
 
     @tm.lock(tm.mqtt_lock)
-    def _delta_resolver(self, requests: dict) -> None:
+    def _delta_resolver(self, requests: dict, req_id: str) -> None:
         """
         Resolve delta requests through event triggers or state manager commits
-        :param requests: new filtered requests from delta 
+        :param requests: new filtered requests from delta
         :type requests: dict
         """
+        self._logger.info("got request: %s", requests)
         # resolve jwt
         if "jwt" in requests:
+            self._logger.info("got JWT request!")
+
             with StateManager() as state:
                 device = state.device
                 device.jwt = requests["jwt"]
                 result = state.commit(device)
                 # if commit fails do not report success
                 if not result:
-                    requests.pop("jwt")
+                    err_status = "Failed to resolve JWT\n"
+                    self._logger.warning(err_status)
+                    self._error_msg += err_status
         # resolve setpoints
         if "TP" in requests:
             tp = float(requests['TP'])
@@ -332,7 +301,9 @@ class MQTT(AWSIoTMQTTShadowClient):
                 result = state.commit(icb)
                 # if commit fails do not report success
                 if not result:
-                    requests.pop("TP")
+                    err_status = f"REQ:{req_id}: Failed to resolve TP\n"
+                    self._logger.warning(err_status)
+                    self._error_msg += err_status
         if "OP" in requests:
             op = float(requests['OP'])
             with StateManager() as state:
@@ -341,7 +312,9 @@ class MQTT(AWSIoTMQTTShadowClient):
                 result = state.commit(icb)
                 # if commit fails do not report success
                 if not result:
-                    requests.pop("OP")
+                    err_status = f"REQ:{req_id}: Failed to resolve OP\n"
+                    self._logger.warning(err_status)
+                    self._error_msg += err_status
         if "CP" in requests:
             cp = float(requests['CP'])
             with StateManager() as state:
@@ -350,7 +323,10 @@ class MQTT(AWSIoTMQTTShadowClient):
                 result = state.commit(icb)
                 # if commit fails do not report success
                 if not result:
-                    requests.pop("CP")
+                    err_status = f"REQ:{req_id}: Failed to resolve CP\n"
+                    self._logger.warning(err_status)
+                    self._error_msg += err_status
+
         # resolve refresh flags
         if "refresh" in requests:
             refresh_requests = requests["refresh"]
@@ -369,122 +345,27 @@ class MQTT(AWSIoTMQTTShadowClient):
                 result = state.commit(imaging_profile)
                 # if commit fails do not report success
                 if not result:
-                    requests.pop("imaging_settings")
-        # report completion once all requests are properly resolved
-        self._report_shadow(payload={'state': {'reported': requests}})
+                    err_status = f"REQ:{req_id}: Failed to resolve imaging_settings\n"
+                    self._logger.warning(err_status)
+                    self._error_msg += err_status
 
-    @tm.threaded(daemon=True)
+    @ tm.threaded(daemon=True)
     def resolve_device_refresh(self):
         self._logger.info("Starting device refresh resolution")
         events.new_device.trigger()
 
-    @tm.threaded(daemon=True)
+    @ tm.threaded(daemon=True)
     def resolve_experiment_refresh(self) -> None:
         self._logger.info("Starting experiment refresh resolution")
         events.new_experiment.trigger()
 
-    @tm.threaded(daemon=True)
+    @ tm.threaded(daemon=True)
     def resolve_protocol_refresh(self) -> None:
         self._logger.info("Starting protocol refresh resolution")
         events.new_protocol.trigger()
 
-    async def update_setpoints(self, sensorframe: ICB):
-        """
-        Update setpoint values for telemetry reporting and report setpoint changes on
-        the local system to the shadow topic.
-        :param sensorframe: sensorframe dict updated from callback function
-        """
-        # as long as there is one setpoint difference, report to cloud
-        setpoint_payload = {
-            'TP': sensorframe.tp,
-            'OP': sensorframe.op,
-            'CP': sensorframe.cp
-        }
-        # only report setpoint changes to avoid mqtt overload
-        state_payload = {
-            'state':
-            {
-                'desired': setpoint_payload,
-                'reported': setpoint_payload,
-            }
-        }
-        self._report_shadow(payload=state_payload)
-
-    async def update_imaging_settings(self, imaging_profile: ImagingProfile) -> None:
-        """
-        Update shadow document with new imaging profile changes.
-        """
-        # generate payload
-        payload = {
-            'dpc_exposure': imaging_profile.dpc_exposure,
-            'dpc_exposure_min': imaging_profile.dpc_exposure_min,
-            'dpc_exposure_max': imaging_profile.dpc_exposure_max,
-            'gfp_exposure': imaging_profile.gfp_exposure,
-            'gfp_exposure_min': imaging_profile.gfp_exposure_min,
-            'gfp_exposure_max': imaging_profile.gfp_exposure_max,
-            'dpc_gain': imaging_profile.dpc_gain,
-            'gfp_gain': imaging_profile.gfp_gain,
-            'gain_min': imaging_profile.gain_min,
-            'gain_max': imaging_profile.gain_max,
-            'dpc_brightness': imaging_profile.dpc_brightness,
-            'gfp_brightness': imaging_profile.dpc_brightness,
-            'brightness_min': imaging_profile.brightness_min,
-            'brightness_max': imaging_profile.brightness_max,
-            'dpc_inner_radius': imaging_profile.dpc_inner_radius,
-            'dpc_outer_radius': imaging_profile.dpc_outer_radius
-        }
-        # this reports the full image settings (overkill when only one changed)
-        imaging_settings_payload = {
-            'state':
-            {
-                'desired':
-                {
-                    'imaging_settings': payload
-                },
-                'reported':
-                {
-                    'imaging_settings': payload,
-                }
-            }
-        }
-        self._report_shadow(payload=imaging_settings_payload)
-
-    @validate_shadow_init
-    def _report_shadow(self, payload: Dict[str, Any]):
-        """
-        Update the MQTT shadow document with the reported changes
-        :param payload: dictionary containing reported entries
-        :param qos: AWS client publishing parameter defining caching and retrying failed publishes
-        """
-        self._logger.debug("Updating shadow document with: %s", payload)
-        json_payload = json.dumps(payload)
-        if self.shadow is not None:
-            self.shadow.shadowUpdate(
-                srcJSONPayload=json_payload,
-                srcCallback=self._shadow_update_response,
-                srcTimeout=conf.SHADOW_UPDATE_TIMEOUT
-            )
-        # self.client.publish(self.aws_st,json.dumps(payload),qos)
-        self._logger.debug("Reported %s to MQTT shadow document", payload)
-
-    def _shadow_update_response(self, payload: str, responseStatus: str, token) -> None:
-        """
-        Response callback function for shadowUpdate call
-        :param payload: shadowUpdate payload
-        :type payload: str
-        :param responseStatus: response status from aws
-        :type responseStatus: str
-        :param token: shadowUpdate request identifier
-        :type token: [type]
-        """
-        if responseStatus == "accepted":
-            self._logger.info(
-                "Device shadow request %s accepted and updated with: %s", token, payload)
-        else:
-            self._logger.error(
-                "Device shadow update request %s rejected with response status: %s", token, responseStatus)
-
-    async def _report_telemetry(self, icb: ICB) -> None:
+    @tm.threaded(daemon=True)
+    def _report_telemetry(self) -> None:
         """
         Callback for reporting telemetry data to cloud. We have different telemetry point types
         with different ttl values for plotting on the webapp so we package the telemetry based on
@@ -492,111 +373,52 @@ class MQTT(AWSIoTMQTTShadowClient):
 
         :param qos: AWS client publishing parameter defining caching and retrying failed publishes
         """
-        try:
-            epoch = round(datetime.now(timezone.utc).timestamp())
-            # publish long point once every 15 minutes
-            if epoch >= self.last_lpt_publish + (15 * 60):
-                save_point = True
-                self.last_lpt_publish = epoch
-            else:
-                save_point = False
-            if icb.initialized:
-                payload = {
-                    'TC': icb.tc,
-                    'CC': icb.cc,
-                    'OC': icb.oc,
-                    'RH': icb.rh,
-                    'TP': icb.tp,
-                    'CP': icb.cp,
-                    'OP': icb.op,
-                    'TO': icb.to,
-                    'time': icb.timestamp,
-                    'exp_id': "-1",
-                    'ttl': 0 if save_point else datetime.now(timezone.utc).timestamp() + 120,
-                    'point_type': 1 if save_point else 0
-                }
-                self.client.publish(self.aws_tt, json.dumps(payload), QoS=0)
-                self._logger.debug("Published telemetry document %s", payload)
-                with StateManager() as state:
-                    experiment = state.experiment
-                if experiment.initialized and experiment.active:
-                    # republish old telemetry, but with exp_id
-                    payload['exp_id'] = experiment.id
-                    self.client.publish(self.aws_tt, json.dumps(payload), QoS=0)
-                    self._logger.debug("Published experiment telemetry document %s", payload)
-        except AWSIoTExceptions.publishTimeoutException as exc:
-            self._logger.exception("Telemetry document publish timed out %s", exc)
+        # TODO: check timestamps to see if data is old
+        while True:
+            with StateManager() as state:
+                icb = state.icb
+            try:
+                epoch = round(datetime.now(timezone.utc).timestamp())
+                self._logger.info("reporting telemetry results: %s", epoch)
+                self.client.publish(self.aws_tt, json.dumps({"tele_test": epoch}), qos=0)
 
-    @staticmethod
-    def filter_delta(cache: dict, delta: dict) -> dict:
-        """
-        Recursive method to compare a cached dict to an incoming dict and generating a dict with
-        undiscovered changes from the incoming with respect to the cached copy.
-        :param cache: reference delta diff
-        :type cache: dict
-        :param delta: incoming delta
-        :type delta: dict
-        :return: dict containing only new updates from delta
-        :rtype: dict
-        """
-        _delta = {}
-        # iterate through layer items
-        for kvp in delta.items():
-            key, value = kvp
-            # check for new keys
-            if key not in cache.keys():
-                _delta[key] = value
-            # explore nested structures
-            elif isinstance(value, dict):
-                diff = MQTT.filter_delta(cache[key], delta[key])
-                if diff != {}: _delta[key] = diff
-            # check for value diffs
-            elif cache[key] != delta[key]:
-                _delta[key] = delta[key]
-        return _delta
+                # publish long point once every 15 minutes
+                if epoch >= self.last_lpt_publish + (15 * 60):
+                    save_point = True
+                    self.last_lpt_publish = epoch
+                else:
+                    save_point = False
+                if icb.initialized:
+                    # classic minimal telemetry payload
+                    payload = {
+                        'TC': icb.tc,
+                        'CC': icb.cc,
+                        'OC': icb.oc,
+                        'RH': icb.rh,
+                        'TP': icb.tp,
+                        'CP': icb.cp,
+                        'OP': icb.op,
+                        'TO': icb.to,
+                        'time': icb.timestamp,
+                        'exp_id': "-1",
+                        'ttl': 0 if save_point else datetime.now(timezone.utc).timestamp() + 120,
+                        'point_type': 1 if save_point else 0
+                    }
+                    # full state payload
+                    payload['shadow'] = self._generate_shadow_document()
+                    payload['errors'] = self._error_msg
 
-    @staticmethod
-    def _generate_shadow_document() -> Dict[str, Any]:
-        """
-        Compute shadow refresh timestamps and packages payload. This function is used to initialize
-        the shadow document in the event it is unset or deleted.
-        :returns payload: dict payload to be published to the shadow topic
-        """
-        with StateManager() as state:
-            device = state.device
-        jwt = device.jwt
-        timestamp = datetime.now(timezone.utc).isoformat()
-        shadow_template = {
-            "desired":
-            {
-                "TP": ICB.TP_DEFAULT,
-                "CP": ICB.CP_DEFAULT,
-                "OP": ICB.OP_DEFAULT,
-                "refresh":
-                {
-                    "device": timestamp,
-                    "experiment": timestamp,
-                    "customer": timestamp,
-                    "protocol": timestamp
-                },
-                "jwt": jwt,
-                "imaging_settings": IC.DEFAULT_IP_PAYLOAD
-            },
-            "reported":
-            {
-                "is_online": True,
-                "TP": ICB.TP_DEFAULT,
-                "CP": ICB.CP_DEFAULT,
-                "OP": ICB.OP_DEFAULT,
-                "refresh":
-                {
-                    "device": timestamp,
-                    "experiment": timestamp,
-                    "customer": timestamp,
-                    "protocol": timestamp
-                },
-                "jwt": jwt,
-                "imaging_settings": IC.DEFAULT_IP_PAYLOAD
-            }
-        }
-        return shadow_template
+                    self.client.publish(self.aws_tt, json.dumps(payload), qos=0)
+                    self._logger.debug("Published telemetry document %s", payload)
+                    with StateManager() as state:
+                        experiment = state.experiment
+                    if experiment.initialized and experiment.active:
+                        # republish old telemetry, but with exp_id
+                        payload['exp_id'] = experiment.id
+                        self.client.publish(self.aws_tt, json.dumps(payload), qos=0)
+                        self._logger.debug("Published experiment telemetry document %s", payload)
+                    # reset the error_msgs
+                    self._error_msg = ""
+            except (ValueError, TypeError) as exc:
+                self._logger.exception("Telemetry document publish failed: %s", exc)
+            time.sleep(5)
