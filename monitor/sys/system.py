@@ -88,13 +88,14 @@ def main():
             device = state.device
             lab_id = device.lab_id
         _logger.info("Lab ID: %s", lab_id)
-        time.sleep(1)
+        # time.sleep(1)
         events.system_status.trigger(msg="Initializing hardware link")
-        time.sleep(1)
+        # time.sleep(1)
+        _logger.info("Done!")
         events.system_status.trigger(msg="Loading cloud resources")
         _logger.info("Starting MQTT...")
         _mqtt.start()
-        _logger.info("Done!")
+
 
     except BaseException as exc:
         _logger.exception(exc)
@@ -165,7 +166,7 @@ def update_snap():
 def factory_reset():
     """
     Resets the incubator to factory settings deleting all the users personal files located
-    in SNAP_COMMON
+    in COMMON
     """
     _logger.info("Resetting to factory defaults")
     file_list = ['/hostname.txt', '/thumbnail.png', '/device_avatar.png']
@@ -175,10 +176,10 @@ def factory_reset():
     # if they do not exist then report success
     # if they exist delete them then report success
     with ContextManager() as context:
-        snap_common = context.get_env('SNAP_COMMON')
+        common = context.get_env('COMMON')
 
-    file_list = list(map(lambda x: snap_common + x, file_list))
-    dir_list = list(map(lambda x: snap_common + x, dir_list))
+    file_list = list(map(lambda x: common + x, file_list))
+    dir_list = list(map(lambda x: common + x, dir_list))
     try:
         events.system_status.trigger(msg="Resetting IRIS to factory defaults")
         # clear top level user files
@@ -208,7 +209,7 @@ def factory_reset():
                 _logger.debug("directory %s is removed", dp)
         # clear lab id for this incubator
         events.system_status.trigger(msg="Removing lab identification")
-        os.remove(context.get_env('SNAP_COMMON') + '/certs/lab_id.txt')
+        os.remove(context.get_env('COMMON_CERTS') + 'lab_id.txt')
     except BaseException as exc:
         _logger.exception("Factory reset failed: %s", exc)
         events.system_status.trigger(
@@ -321,7 +322,7 @@ def calibrate_dpc():
         _logger.info("Starting DPC background calibration.")
         events.system_status.trigger(msg="Performing calibration. This may take a while.")
         with ContextManager() as context:
-            background_path = context.get_env('SNAP_COMMON') + '/dpc_background'
+            background_path = context.get_env('COMMON_DPC')
         if not os.path.isdir(background_path):
             os.makedirs(background_path, mode=0o777, exist_ok=True)
         # full exposure grade sweep

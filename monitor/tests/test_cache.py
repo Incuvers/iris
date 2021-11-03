@@ -211,7 +211,7 @@ class TestCache(unittest.TestCase):
         :param mock_cm: [description]
         :type mock_cm: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("SNAP_COMMON")
+        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         # test ip model write
         self.cache.write_lab_id(None)
         _remove.assert_called_once()
@@ -229,7 +229,7 @@ class TestCache(unittest.TestCase):
         :param mock_cm: [description]
         :type mock_cm: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("SNAP_COMMON")
+        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         # test ip model write
         self.cache.write_device_avatar(b'')
         _open.return_value.__enter__.return_value.write.assert_called_with(b'')
@@ -243,7 +243,7 @@ class TestCache(unittest.TestCase):
         :param mock_cm: [description]
         :type mock_cm: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("SNAP_COMMON")
+        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         # test ip model write
         self.cache.write_thumbnail(b'')
         _open.return_value.__enter__.return_value.write.assert_called_with(b'')
@@ -255,7 +255,7 @@ class TestCache(unittest.TestCase):
         """
         Test lab id file parsing.
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("SNAP_COMMON")
+        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         mock_cm.return_value.parse_id.return_value = "1"
         _open.side_effect = FileNotFoundError
         self.assertEqual(self.cache.read_lab_id(), None)
@@ -311,9 +311,9 @@ class TestCache(unittest.TestCase):
         :type mock_os: MagicMock
         """
         # test sanity
-        mock_cm.return_value.get_env.return_value = os.environ.get("SNAP_COMMON")
+        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         self.cache.clear_thumbnail()
-        mock_os.assert_called_once_with("{}/thumbnail.png".format(os.environ.get("SNAP_COMMON")))
+        mock_os.assert_called_once_with("{}/thumbnail.png".format(os.environ.get("COMMON")))
         # test file not found handle
         mock_os.reset_mock()
         mock_os.side_effect = FileNotFoundError

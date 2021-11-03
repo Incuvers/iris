@@ -143,6 +143,9 @@ class MQTT():
         res = self.client.subscribe(self.aws_ip, 0)
         self._logger.info("subscribe results: %s", res)
         self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
+        
+        # really gotta make sure the subscribe is finilized before attempting a jwt renew...
+        self.client.loop()
 
         # attempt jwt request
         events.renew_jwt.trigger()
