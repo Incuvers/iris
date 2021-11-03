@@ -10,11 +10,13 @@ Proprietary and confidential
 """
 
 import os
+import sys
 import yaml
 import logging
 import logging.config
 from pathlib import Path
 from envyaml import EnvYAML
+from configparser import ConfigParser
 
 from monitor.logs.formatter import pformat
 from monitor.__version__ import __version__
@@ -62,7 +64,26 @@ def logging_handler(config_path: Path, base_path: str) -> None:
         logging.info("Logging configuration successful.")
 
 
-def device_certs_handler() -> None: ...
+def device_certs_handler(base_path: str) -> None:
+    """
+    Read device certs and export as environment variables for global access. If device certs are missing exit with error code 2
+
+    :param base_path: device certs base path
+    :type base_path: str
+    """
+    if not os.path.exists(base_path + '/amqp.key') or \
+            not os.path.exists(base_path + '/device.ini'):
+        logging.critical("Failed to identify device certs.")
+        sys.exit(2)
+    # instantiate
+    config = ConfigParser()
+    config.read(base_path + '/amqp.key')
+    os.environ['AMQP_USER'] = config.get('amqp', 'user')
+    os.environ['AMQP_PASS'] = config.get('amqp', 'password')
+    # parse existing file
+    config.read(base_path + '/device.ini')
+    os.environ['ID'] = config.get('iris', 'id')
+    logging.info("Successfully exported device certs")
 
 
 logging_handler(
@@ -70,4 +91,7 @@ logging_handler(
     base_path=os.environ.get("MONITOR_LOGS", str(Path(__file__).parent.joinpath('logs/')))
 )
 
-device_certs_handler()
+device_certs_handler(
+    base_path=os.environ.get("MONITOR_CERTS", str(
+        Path(__file__).parent.parent.joinpath('instance/certs')))
+)
