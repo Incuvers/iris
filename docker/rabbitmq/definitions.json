@@ -1,80 +1,80 @@
 {
 	"users": [
-	  {
-		"name": "admin",
-		"password": "admin",
-		"tags": "administrator"
-	  },
-	  {
-		"name": "microservice",
-		"password": "microservice",
-		"tags": ""
-	  }
+    {
+      "name": "admin",
+      "password_hash": "03vpLb7C6dS+lQCWHpd+Q8g0e76zUi7KZVyce0a92RXbKnyp",
+      "tags": "administrator"
+    },
+    {
+      "name": "microservice",
+      "password_hash": "FbmcuvCwa2JANUpAZR9yegIOrnNJyvdS5MKCqTe/HHKMmbTA",
+      "tags": ""
+    }
 	],
 	"vhosts": [
-	  {
-		"name": "/"
-	  }
+    {
+      "name": "/"
+    }
 	],
-	"permissions": [
-	  {
-		"user": "admin",
-		"vhost": "/",
-		"configure": ".*",
-		"write": ".*",
-		"read": ".*"
-	  },
-	  {
-		"user": "microservice",
-		"vhost": "/",
-		"configure": "",
-		"write": ".*",
-		"read": ".*"
-	  }
-	],
-	"exchanges": [
-	  {
-		"name": "device",
-		"vhost": "/",
-		"type": "topic",
-		"durable": false,
-		"auto_delete": true,
-		"internal": false,
-		"arguments": {}
-	  }
-	],
-	"queues": [
-	  {
-		"name": "command",
-		"vhost": "/",
-		"durable": false,
-		"auto_delete": true,
-		"arguments": {}
-	  },
-	  {
-		"name": "telemetry",
-		"vhost": "/",
-		"durable": false,
-		"auto_delete": true,
-		"arguments": {}
-	  }
-	],
-	"bindings": [
-	  {
-		"source": "device",
-		"vhost": "/",
-		"destination": "telemetry",
-		"destination_type": "queue",
-		"routing_key": "topic.telemetry",
-		"arguments": {}
-	  },
-	  {
-		"source": "device",
-		"vhost": "/",
-		"destination": "command",
-		"destination_type": "queue",
-		"routing_key": "topic.command",
-		"arguments": {}
-	  }
-	]
-  }
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "microservice",
+      "vhost": "/",
+      "configure": "",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "device",
+      "vhost": "/",
+      "type": "topic",
+      "durable": false,
+      "auto_delete": true,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "command",
+      "vhost": "/",
+      "durable": false,
+      "auto_delete": true,
+      "arguments": {}
+    },
+    {
+      "name": "telemetry",
+      "vhost": "/",
+      "durable": false,
+      "auto_delete": true,
+      "arguments": {}
+    }
+  ],
+"bindings": [
+    {
+      "source": "device",
+      "vhost": "/",
+      "destination": "telemetry",
+      "destination_type": "queue",
+      "routing_key": "device.telemetry",
+      "arguments": {}
+    },
+    {
+      "source": "device",
+      "vhost": "/",
+      "destination": "command",
+      "destination_type": "queue",
+      "routing_key": "device.command",
+      "arguments": {}
+    }
+  ]
+}
