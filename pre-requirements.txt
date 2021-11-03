@@ -1,3 +1,4 @@
 pip
 Cython
 PyYaml
+numpy>=1.21.3
