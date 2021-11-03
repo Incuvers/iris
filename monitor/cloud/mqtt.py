@@ -266,7 +266,7 @@ class MQTT():
         if req_id is None:
             self._logger.info("Missing req_id, ignoring.")
             return
-        self._delta_resolver(json.loads(message.payload), req_id)
+        self._delta_resolver(json.loads(message.payload)['state']['desired'], req_id)
 
     @tm.lock(tm.mqtt_lock)
     def _delta_resolver(self, requests: dict, req_id: str) -> None:
@@ -275,8 +275,11 @@ class MQTT():
         :param requests: new filtered requests from delta
         :type requests: dict
         """
+        self._logger.info("got request: %s", requests)
         # resolve jwt
         if "jwt" in requests:
+            self._logger.info("got JWT request!")
+
             with StateManager() as state:
                 device = state.device
                 device.jwt = requests["jwt"]
