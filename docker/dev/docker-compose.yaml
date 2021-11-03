@@ -1,5 +1,5 @@
 ---
-version: "2.9"
+version: "3.9"
 services:
   rmq:
     container_name: rmq
@@ -10,7 +10,7 @@ services:
       # expose for rmq web client
       - "15672:15672"
     networks:
-      - iris
+      - ampq
 
   novnc:
     container_name: novnc
@@ -38,7 +38,7 @@ services:
       - ../../:/app
     networks:
       - x11
-      - iris
+      - ampq
     environment:
       - ID=${ID}
       - DISPLAY=novnc:0.0
@@ -63,11 +63,11 @@ services:
     depends_on:
       - rmq
     networks:
-      - iris
+      - ampq 
     environment:
       - RABBITMQ_ADDR=rmq:5672
     
 
 networks:
   x11:
-  iris:
+  ampq:
