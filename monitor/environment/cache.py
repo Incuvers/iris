@@ -173,7 +173,7 @@ class SystemCache:
         Writes lab_id to the local lab_id file (lab_id.txt)
         """
         with ContextManager() as context:
-            if lab_id is None:
+            if lab_id is None and os.path.isfile(context.get_env('SNAP_COMMON') + '/certs/lab_id.txt'):
                 os.remove(context.get_env('SNAP_COMMON') + '/certs/lab_id.txt')
                 return
             with open(context.get_env('SNAP_COMMON') + '/certs/lab_id.txt', 'w+') as fp:
