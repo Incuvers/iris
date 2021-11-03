@@ -37,7 +37,7 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
-from monitor.rmq.client import RMQClient
+from monitor.amqp.client import AMQPClient
 from monitor.scheduler.imaging import ImagingScheduler
 import time
 import os
@@ -84,7 +84,7 @@ def main():
         # RMQ Event config
         host = os.environ['RABBITMQ_ADDR'].split(':')[0]
         port = int(os.environ['RABBITMQ_ADDR'].split(':')[1])
-        RMQClient(host, port)
+        AMQPClient(host, port)
         _mqtt = MQTT(device_id=os.environ.get('ID', None))
         SetpointScheduler()
         ImagingScheduler()
