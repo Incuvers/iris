@@ -51,7 +51,7 @@ import struct
 from pathlib import Path
 from monitor.sys import kernel
 from monitor.sys import decorators
-# from monitor.cloud.mqtt import MQTT
+from monitor.cloud.mqtt import MQTT
 # from monitor.microscope.microscope import Microscope as scope
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
@@ -79,7 +79,7 @@ def main():
         else:
             _logger.info("%s", result)
         events.system_status.trigger(msg="Initializing modules")
-        # _mqtt = MQTT()
+        _mqtt = MQTT(device_id=os.environ.get('ID', None))
         SetpointScheduler()
         ImagingScheduler()
         # load runtime models from cache into state manager
@@ -88,11 +88,15 @@ def main():
             device = state.device
             lab_id = device.lab_id
         _logger.info("Lab ID: %s", lab_id)
-        time.sleep(1)
+        # time.sleep(1)
         events.system_status.trigger(msg="Initializing hardware link")
-        time.sleep(1)
+        # time.sleep(1)
+        _logger.info("Done!")
         events.system_status.trigger(msg="Loading cloud resources")
-        # _mqtt.start()
+        _logger.info("Starting MQTT...")
+        _mqtt.start()
+
+
     except BaseException as exc:
         _logger.exception(exc)
         events.system_status.trigger(
@@ -162,7 +166,7 @@ def update_snap():
 def factory_reset():
     """
     Resets the incubator to factory settings deleting all the users personal files located
-    in SNAP_COMMON
+    in COMMON
     """
     _logger.info("Resetting to factory defaults")
     file_list = ['/hostname.txt', '/thumbnail.png', '/device_avatar.png']
@@ -172,10 +176,10 @@ def factory_reset():
     # if they do not exist then report success
     # if they exist delete them then report success
     with ContextManager() as context:
-        snap_common = context.get_env('SNAP_COMMON')
+        common = context.get_env('COMMON')
 
-    file_list = list(map(lambda x: snap_common + x, file_list))
-    dir_list = list(map(lambda x: snap_common + x, dir_list))
+    file_list = list(map(lambda x: common + x, file_list))
+    dir_list = list(map(lambda x: common + x, dir_list))
     try:
         events.system_status.trigger(msg="Resetting IRIS to factory defaults")
         # clear top level user files
@@ -205,7 +209,7 @@ def factory_reset():
                 _logger.debug("directory %s is removed", dp)
         # clear lab id for this incubator
         events.system_status.trigger(msg="Removing lab identification")
-        os.remove(context.get_env('SNAP_COMMON') + '/certs/lab_id.txt')
+        os.remove(context.get_env('COMMON_CERTS') + 'lab_id.txt')
     except BaseException as exc:
         _logger.exception("Factory reset failed: %s", exc)
         events.system_status.trigger(
@@ -318,7 +322,7 @@ def calibrate_dpc():
         _logger.info("Starting DPC background calibration.")
         events.system_status.trigger(msg="Performing calibration. This may take a while.")
         with ContextManager() as context:
-            background_path = context.get_env('SNAP_COMMON') + '/dpc_background'
+            background_path = context.get_env('COMMON_DPC')
         if not os.path.isdir(background_path):
             os.makedirs(background_path, mode=0o777, exist_ok=True)
         # full exposure grade sweep

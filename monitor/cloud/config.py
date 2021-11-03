@@ -17,6 +17,7 @@ Proprietary and confidential
 class MQTTConfig:
     # class definitions
     PORT = 8883
+    # PORT = 443
     # TODO: this will come from the experiment id when the feature is properly implemented
     SLEEP = 5
     RECONNNECT = 10

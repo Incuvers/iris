@@ -45,6 +45,9 @@ class SystemCache:
         # initialize filesystem
         with ContextManager() as context:
             os.makedirs(context.get_env('MONITOR_CACHE'), mode=0o777, exist_ok=True)
+            os.makedirs(context.get_env('COMMON'), mode=0o777, exist_ok=True)
+            os.makedirs(context.get_env('COMMON_CERTS'), mode=0o777, exist_ok=True)
+
         self._logger.info("%s instantiated", __name__)
 
     def get_protocol(self) -> Protocol:
@@ -147,7 +150,7 @@ class SystemCache:
         :type img: bytes
         """
         with ContextManager() as context:
-            avatar_path = context.get_env('SNAP_COMMON') + '/device_avatar.png'
+            avatar_path = context.get_env('COMMON') + '/device_avatar.png'
             with open(avatar_path, 'wb') as avatar:
                 avatar.write(img)
 
@@ -161,7 +164,7 @@ class SystemCache:
         """
         with ContextManager() as context:
             try:
-                with open(context.get_env('SNAP_COMMON') + '/certs/lab_id.txt', 'r') as fp:
+                with open(context.get_env('COMMON_CERTS') + '/lab_id.txt', 'r') as fp:
                     contents = fp.readlines()
             except FileNotFoundError:
                 return None
@@ -173,10 +176,10 @@ class SystemCache:
         Writes lab_id to the local lab_id file (lab_id.txt)
         """
         with ContextManager() as context:
-            if lab_id is None:
-                os.remove(context.get_env('SNAP_COMMON') + '/certs/lab_id.txt')
+            if lab_id is None and os.path.isfile(context.get_env('COMMON_CERTS') + '/lab_id.txt'):
+                os.remove(context.get_env('COMMON_CERTS') + '/lab_id.txt')
                 return
-            with open(context.get_env('SNAP_COMMON') + '/certs/lab_id.txt', 'w+') as fp:
+            with open(context.get_env('COMMON_CERTS') + '/lab_id.txt', 'w+') as fp:
                 fp.write(f"{lab_id}")
 
     @staticmethod
@@ -234,11 +237,11 @@ class SystemCache:
     @staticmethod
     def clear_thumbnail() -> None:
         """
-        Remove thumbnail image from SNAP_COMMON
+        Remove thumbnail image from COMMON
         """
         # remove cached thumbnail image
         with ContextManager() as context:
-            filename = context.get_env('SNAP_COMMON') + "/thumbnail.png"
+            filename = context.get_env('COMMON') + "/thumbnail.png"
             try:
                 os.remove(filename)
             except FileNotFoundError:
@@ -253,6 +256,6 @@ class SystemCache:
         :type img: bytes
         """
         with ContextManager() as context:
-            thumbnail_path = context.get_env('SNAP_COMMON') + '/thumbnail.png'
+            thumbnail_path = context.get_env('COMMON') + '/thumbnail.png'
             with open(thumbnail_path, 'wb') as thumbnail:
                 thumbnail.write(img)

@@ -43,14 +43,17 @@ services:
       - SDL_NOMOUSE=1
       - SNAP=/app
       - SNAP_DATA=/app/monitor/logs
-      - SNAP_COMMON=/app/instance
+      - COMMON=/app/instance
       - MPLBACKEND=Agg
       - MONITOR_CACHE=/app/instance/cache
+      - COMMON_CERTS=/app/instance/certs
+      - COMMOND_DPC=/app/instance/dpc_background
       - MONITOR_MODE=monitor
       - MONITOR_ENV=development
       - RABBITMQ_ADDR=rmq:5672
       - API_BASE_URL=https://api.dev.incuvers.com
       - API_BASE_PATH=/v1
+
 
 networks:
   x11:
