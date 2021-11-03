@@ -72,111 +72,101 @@ loggers:
 
 handlers:
   defaultHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/unregistered.log
+    filename: ${MONITOR_LOGS}/unregistered.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 2
   systemHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/system.log
+    filename: ${MONITOR_LOGS}/system.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 3
   stateHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/state.log
+    filename: ${MONITOR_LOGS}/state.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 5
   environmentHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/environment.log
+    filename: ${MONITOR_LOGS}/environment.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 3
   eventHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/event.log
+    filename: ${MONITOR_LOGS}/event.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 5
   mqttHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/mqtt.log
+    filename: ${MONITOR_LOGS}/mqtt.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 5
   imagingHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/imaging.log
+    filename: ${MONITOR_LOGS}/imaging.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 1
   protocolHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/protocol.log
+    filename: ${MONITOR_LOGS}/protocol.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 1
   apiHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/api.log
+    filename: ${MONITOR_LOGS}/api.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 5
   uiHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/ui.log
+    filename: ${MONITOR_LOGS}/ui.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 1
   schedulerHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/scheduler.log
+    filename: ${MONITOR_LOGS}/scheduler.log
     mode: 'a'
     maxBytes: 1000000
   cacheHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/cache.log
+    filename: ${MONITOR_LOGS}/cache.log
     mode: 'a'
     maxBytes: 1000000
   rmqHandler:
-    level: 'DEBUG'
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: monitor/logs/rmq.log
+    filename: ${MONITOR_LOGS}/rmq.log
     mode: 'a'
     maxBytes: 1000000
   consoleHandler:
-    level: 'DEBUG'
     class: 'logging.StreamHandler'
     formatter: default
 
 formatters:   # more commment
   default:
-    format: '%(asctime)s %(threadName)s %(name)s line:%(lineno)d - %(levelname)s: %(message)s'
+    format: '%(asctime)s %(threadName)s %(name)s %(lineno)d - %(levelname)s: %(message)s'
+  epoch:
+    format: '%(created)f %(threadName)s %(name)s %(lineno)d - %(levelname)s: %(message)s'
+  simple:
+    format: '%(name)s %(lineno)d - %(levelname)s: %(message)s'
