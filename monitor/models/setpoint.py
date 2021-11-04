@@ -26,6 +26,12 @@ class Setpoint:
         self.OP = 0.0
 
     def serialize(self) -> Dict[str, Any]:
+        """
+        Serialize object into json compatible dict
+
+        :return: object attributes and values
+        :rtype: Dict[str, Any]
+        """
         return {
             'index': self.index,
             'duration': self.duration,
@@ -33,7 +39,7 @@ class Setpoint:
             'TP': self.TP,
             'OP': self.OP,
         }
-    
+
     def deserialize(self, **kwargs) -> None:
         """
         Iteratively set object properties
