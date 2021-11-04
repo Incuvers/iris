@@ -37,6 +37,7 @@ def logging_handler(config_path: Path, base_path: str) -> None:
     :param base_path: logging path
     :type base_path: str
     """
+    os.makedirs(base_path, mode=0o777, exist_ok=True)
     # using split '.' to remove logs for rolling file handlers with format: <name>.log.<number>
     logs = list(
         filter(
