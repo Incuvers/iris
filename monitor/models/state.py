@@ -19,9 +19,11 @@ from json import JSONDecodeError
 from typing import Any, Dict, Union
 from abc import ABC, abstractmethod
 
+_PKey = Union[int, str]
+
 class StateModel(ABC):
 
-    def __init__(self, _id:int, filename:str) -> None:
+    def __init__(self, _id:_PKey, filename:str) -> None:
         self._logger = logging.getLogger(__name__)
         self.id = _id
         cache_base_path = os.environ.get('MONITOR_CACHE', default='/etc/iris/cache')
@@ -35,22 +37,22 @@ class StateModel(ABC):
         return False
 
     @property
-    def id(self) -> Union[int, str]:
+    def id(self) -> _PKey:
         """
         Get state model id
 
         :return: state model id
-        :rtype: Union[int, str]
+        :rtype: _PKey
         """
         return self.__id
 
     @id.setter
-    def id(self, _id: Union[int, str]) -> None:
+    def id(self, _id: _PKey) -> None:
         """
         Set state model id
 
         :param _id: state model id 
-        :type _id: Union[int, str]
+        :type _id: _PKey
         """
         self.__id = _id
 
