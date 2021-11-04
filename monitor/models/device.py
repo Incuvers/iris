@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Device
@@ -10,9 +9,12 @@ Model object for device info
 Dependencies:
 -------------
 ```
+import os
 import json
 import base64
-from typing import Optional
+from typing import Any, Dict, Optional
+from monitor.logs.formatter import pformat
+from monitor.models.state import StateModel
 ```
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
@@ -60,7 +62,6 @@ class Device(StateModel):
             'lab_id': self.lab_id,
             'jwt_payload': self.jwt_payload
         }
-
 
     def deserialize(self, **kwargs) -> None:
         """
