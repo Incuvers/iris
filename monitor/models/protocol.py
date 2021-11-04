@@ -14,6 +14,7 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 from typing import Any, Dict, List
+from monitor.logs.formatter import pformat
 from monitor.models.setpoint import Setpoint
 from monitor.models.state import StateModel
 
@@ -29,7 +30,7 @@ class Protocol(StateModel):
         self.repeats = 0
 
     def __repr__(self) -> str:
-        return "Protocol:{}".format(self.serialize())
+        return "Protocol: {}".format(pformat(self.serialize()))
 
     def serialize(self) -> Dict[str, Any]:
         """
