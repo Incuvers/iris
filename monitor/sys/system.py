@@ -37,23 +37,22 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
-from monitor.amqp.client import AMQPClient
-from monitor.scheduler.imaging import ImagingScheduler
 import time
 import os
 import logging
-from typing import Optional
 import numpy as np
-import monitor.imaging.constants as IC
 import uuid
 import socket
 import fcntl
 import struct
 from pathlib import Path
+from typing import Optional
 from monitor.sys import kernel
 from monitor.sys import decorators
 from monitor.cloud.mqtt import MQTT
-# from monitor.microscope.microscope import Microscope as scope
+import monitor.imaging.constants as IC
+from monitor.amqp.client import AMQPClient
+from monitor.scheduler.imaging import ImagingScheduler
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
 from monitor.environment.state_manager import StateManager
