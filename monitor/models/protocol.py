@@ -20,7 +20,10 @@ from monitor.models.state import StateModel
 class Protocol(StateModel):
 
     def __init__(self):
-        super().__init__(_id=-1)
+        super().__init__(
+            _id=-1,
+            filename='protocol.json'
+        )
         self.name = "Default Protocol"
         self.setpoints = []
         self.repeats = 0
@@ -42,7 +45,7 @@ class Protocol(StateModel):
             'setpoints': [ setpoint.serialize() for setpoint in self.setpoints ],
         }
 
-    def setattrs(self, **kwargs) -> None:
+    def deserialize(self, **kwargs) -> None:
         """
         Iteratively set object properties
         """
