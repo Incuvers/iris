@@ -29,6 +29,11 @@ class StateModel(ABC):
         self.cache_path = f'{cache_base_path}/{filename}'
         self._logger.info("Created state model with cache path: %s", self.cache_path)
 
+    def __eq__(self, o:object) -> bool:
+        if hasattr(o, 'id') and hasattr(self, 'id'):
+            return o.id == self.id  # type: ignore
+        return False
+
     @property
     def id(self) -> Union[int, str]:
         """
