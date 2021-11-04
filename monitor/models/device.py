@@ -22,90 +22,54 @@ import os
 import json
 import base64
 from typing import Any, Dict, Optional
+from monitor.logs.formatter import pformat
+from monitor.models.state import StateModel
 
 
-class Device:
+class Device(StateModel):
 
     def __init__(self) -> None:
         """
         Set default device properties 
         """
-        self._id_set = False
-        self._name_set = False
-        self._connected_set = False
-        self._jwt_set = False
-        self._jwt_payload_set = False
-        self._lab_id_set = False
-        self.connected = False
-        self.id = os.environ['ID']
-        self.name = "Welcome to IRIS"
+        super().__init__(
+            _id=os.environ.get('ID', default=""),
+            filename='device.json'
+        )
+        self.name = "IRIS"
         self.jwt = None
+        self.lab_id = None
+        self.mqtt_status = False
+        self.amqp_status = False
         self.jwt_payload = None
-        self.lab_id = None 
 
     def __repr__(self) -> str:
-        return "Device: {}".format(self.getattrs())
+        return "Device: {}".format(pformat(self.serialize()))
 
-    def getattrs(self) -> Dict[str, Any]:
+    def serialize(self) -> Dict[str, Any]:
         """
-        Iteratively get all object properties and values
+        Serialize object into json compatible dict
 
         :return: object attributes and values
         :rtype: Dict[str, Any]
         """
-        attributes: Dict[str, Any] = {}
-        for k, v in vars(self).items():
-            if k.startswith('_{}__'.format(self.__class__.__name__)):
-                attributes[k.split('__')[-1]] = v
-        return attributes
+        return {
+            'id': self.id,
+            'name': self.name,
+            'jwt': self.jwt,
+            'lab_id': self.lab_id,
+            'mqtt_status': self.mqtt_status,
+            'amqp_status': self.amqp_status,
+            'jwt_payload': self.jwt_payload
+        }
 
-    def setattrs(self, **kwargs) -> None:
+
+    def deserialize(self, **kwargs) -> None:
         """
         Iteratively set object properties
         """
         for k, v in kwargs.items():
             setattr(self, k, v)
-
-    @property
-    def initialized(self) -> bool:
-        """
-        Check if all properties have been initialized successfully
-
-        :return: device init status
-        :rtype: bool
-        """
-        initialized = all(
-            [
-                self._id_set,
-                self._name_set,
-                self._connected_set,
-                self._jwt_payload_set,
-                self._jwt_set,
-                self._lab_id_set,
-            ]
-        )
-        return initialized
-
-    @property
-    def id(self) -> str:
-        """
-        Get device id (id)
-
-        :return: device id
-        :rtype: str
-        """
-        return self.__id
-
-    @id.setter
-    def id(self, device_id: str) -> None:
-        """
-        Set device id (id)
-
-        :param device_id: device id
-        :type device_id: str
-        """
-        self.__id = device_id
-        self._id_set = True
 
     @property
     def name(self) -> str:
@@ -126,7 +90,6 @@ class Device:
         :type name: str
         """
         self.__name = name
-        self._name_set = True
 
     @property
     def jwt(self) -> Optional[str]:
@@ -151,35 +114,33 @@ class Device:
         else:
             self.__jwt = jwt
             # remove the bearer bit
-            encoded_jwt = jwt.split(' ')[-1]
+            encoded_jwt = jwt.split('')[-1]
             # get the payload section
             encoded_payload = encoded_jwt.split('.')[1]
             decoded_payload = base64.b64decode(encoded_payload + "===")
             self.jwt_payload = json.loads(decoded_payload)
-        self._jwt_set = True
 
     @property
-    def jwt_payload(self) -> Optional[dict]:
+    def jwt_payload(self) -> Optional[Dict[str,Any]]:
         """
         Get device jwt payload
 
         :return: device jwt payload
-        :rtype: Optional[dict]
+        :rtype: Optional[Dict[str,Any]]
         """
         return self.__jwt_payload
 
     @jwt_payload.setter
-    def jwt_payload(self, payload: Optional[dict]) -> None:
+    def jwt_payload(self, payload: Optional[Dict[str,Any]]) -> None:
         """
         Set device jwt payload
 
         :param payload: parsed and decoded device jwt payload
-        :type payload: Optional[dict]
+        :type payload: Optional[Dict[str,Any]]
         """
         self.__jwt_payload = payload
         if payload is not None:
             self.lab_id = payload.get('lab_id')
-        self._jwt_payload_set = True
 
     @property
     def lab_id(self) -> Optional[int]:
@@ -200,7 +161,6 @@ class Device:
         :type lab_id: Optional[int]
         """
         self.__lab_id = lab_id
-        self._lab_id_set = True
 
     @property
     def registered(self) -> bool:
@@ -213,22 +173,41 @@ class Device:
         return True if self.lab_id is not None else False
 
     @property
-    def connected(self) -> bool:
+    def mqtt_status(self) -> bool:
         """
-        Get device connection status
+        Get mqtt connection status
 
-        :return: device connection status
+        :return: mqtt connection status
         :rtype: bool
         """
-        return self.__connected
+        return self.__mqtt_status
 
-    @connected.setter
-    def connected(self, status: bool) -> None:
+    @mqtt_status.setter
+    def mqtt_status(self, status: bool) -> None:
         """
-        Set device connection status
+        Set mqtt connection status
 
-        :param status: device connection status 
+        :param status: mqtt connection status
         :type status: bool
         """
-        self.__connected = status
-        self._connected_set = True
+        self.__mqtt_status = status
+
+    @property
+    def amqp_status(self) -> bool:
+        """
+        Get amqp connection status
+
+        :return: amqp connection status
+        :rtype: bool
+        """
+        return self.__amqp_status
+
+    @amqp_status.setter
+    def amqp_status(self, status: bool) -> None:
+        """
+        Set amqp connection status
+
+        :param status: amqp connection status
+        :type status: bool
+        """
+        self.__amqp_status = status
