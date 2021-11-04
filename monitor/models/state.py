@@ -14,38 +14,40 @@ Proprietary and confidential
 """
 import os
 import json
+import logging
 from json import JSONDecodeError
-from typing import Any, Dict
+from typing import Any, Dict, Union
 from abc import ABC, abstractmethod
 
 class StateModel(ABC):
 
     def __init__(self, _id:int, filename:str) -> None:
+        self._logger = logging.getLogger(__name__)
         self.id = _id
         cache_base_path = os.environ.get('MONITOR_CACHE', default='/etc/iris/cache')
         os.makedirs(cache_base_path, mode=0o777, exist_ok=True)
         self.cache_path = f'{cache_base_path}/{filename}'
+        self._logger.info("Created state model with cache path: %s", self.cache_path)
 
     @property
-    def id(self) -> int:
+    def id(self) -> Union[int, str]:
         """
         Get state model id
 
-        :return: protocol id
-        :rtype: int
+        :return: state model id
+        :rtype: Union[int, str]
         """
         return self.__id
 
     @id.setter
-    def id(self, _id: int) -> None:
+    def id(self, _id: Union[int, str]) -> None:
         """
         Set state model id
 
         :param _id: state model id 
-        :type _id: int
+        :type _id: Union[int, str]
         """
         self.__id = _id
-
 
     @abstractmethod
     def serialize(self) -> Dict[str, Any]: ...
@@ -60,6 +62,7 @@ class StateModel(ABC):
         with open(self.cache_path, 'w+') as json_file:
             cached_payload = self.serialize()
             json.dump(cached_payload, json_file)
+        self._logger.info("Cached state model: %s", self)
 
     def load(self) -> None:
         """
@@ -71,3 +74,4 @@ class StateModel(ABC):
         except (FileNotFoundError, JSONDecodeError):
             return
         self.deserialize(**device_payload)
+        self._logger.info("Loaded state model: %s", self)
