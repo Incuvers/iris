@@ -59,7 +59,7 @@
       "arguments": {}
     }
   ],
-"bindings": [
+  "bindings": [
     {
       "source": "device",
       "vhost": "/",

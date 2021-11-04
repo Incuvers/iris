@@ -45,9 +45,6 @@ class SystemCache:
         # initialize filesystem
         with ContextManager() as context:
             os.makedirs(context.get_env('MONITOR_CACHE'), mode=0o777, exist_ok=True)
-            os.makedirs(context.get_env('COMMON'), mode=0o777, exist_ok=True)
-            os.makedirs(context.get_env('COMMON_CERTS'), mode=0o777, exist_ok=True)
-
         self._logger.info("%s instantiated", __name__)
 
     def get_protocol(self) -> Protocol:
