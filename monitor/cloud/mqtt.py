@@ -20,7 +20,6 @@ from monitor.models.icb import ICB
 from monitor.exceptions.mqtt import ImageTopicError
 from monitor.environment.state_manager import StateManager
 from monitor.cloud.config import MQTTConfig as conf
-from monitor.environment.context_manager import ContextManager
 from monitor.events.registry import Registry as events
 from monitor.models.imaging_profile import ImagingProfile
 from monitor.ui.static.settings import UISettings as uis
@@ -47,6 +46,7 @@ from monitor.events.registry import Registry as events
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 
+
 class MQTT():
     """
     this class is responsible for cloud operations/communications both reporting and callback notification
@@ -68,7 +68,7 @@ class MQTT():
         self._error_msg = ""
         # last long point type publish time
         self.last_lpt_publish = 0
-        
+
         if 'device_id' in kwargs:
             device_id = kwargs['device_id']
         else:
@@ -84,14 +84,13 @@ class MQTT():
 
         self._logger.info("Instantiation successful.")
 
-
-    def _configure_credentials(self, **kwargs) ->None:
-        ca_path = "./secrets/AmazonRootCA1.pem" 
+    def _configure_credentials(self, **kwargs) -> None:
+        ca_path = "./secrets/AmazonRootCA1.pem"
         cert_path = "./secrets/certificate.pem.crt"
         private_key_path = "./secrets/private.pem.key"
 
         try:
-            #debug print opnessl version
+            # debug print opnessl version
             ssl_context = ssl.create_default_context()
             ssl_context.set_alpn_protocols(["x-amzn-mqtt-ca"])
             ssl_context.load_verify_locations(cafile=ca_path)
@@ -135,7 +134,7 @@ class MQTT():
         """
         self._logger.info("Connected to MQTT broker")
 
-        # subscribe to mulitple topics                    
+        # subscribe to mulitple topics
         res = self.client.subscribe(self.topic_desired, 0)
         self._logger.info("subscribe results: %s", res)
         self.client.message_callback_add(self.topic_desired, self._desired_topic_resolver)
@@ -143,7 +142,7 @@ class MQTT():
         res = self.client.subscribe(self.aws_ip, 0)
         self._logger.info("subscribe results: %s", res)
         self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
-        
+
         # really gotta make sure the subscribe is finilized before attempting a jwt renew...
         self.client.loop()
 
@@ -172,24 +171,8 @@ class MQTT():
         configures the connection required to successfully communicate with the cloud services
         :raises ConnectionError: If connection is unssuccessl indicating the device is offline
         """
-
-        # self.configureAutoReconnectBackoffTime(1, 32, 20)
-        # self.configureConnectDisconnectTimeout(5)  # 5 sec
-        # self.configureMQTTOperationTimeout(5)  # 5 sec
-        # self.configureOfflinePublishQueueing(-1)
-        # self.configureDrainingFrequency(2)
-        # configure connection callbacks
-        # self.onOnline = self._on_connect
-        # self.onOffline = self._on_disconnect
-
-        # configure last will payload
-        # last_will_payload = json.dumps({'state': {'reported': {'is_online': False}}})
-        # with ContextManager() as context:
-        #     self.client.will_set(context.get_env('AWS_LWT'), last_will_payload, 0, False)
-        self.client.on_connect=self._on_connect
-
+        self.client.on_connect = self._on_connect
         self._logger.info("Successfully configured MQTT connection")
-
 
     def _generate_shadow_document(self) -> dict:
         """Construct a dictionary having the reported part of the shadow document
