@@ -195,14 +195,10 @@ class TestCache(unittest.TestCase):
 
     @patch.object(os, 'remove')
     @patch('builtins.open', _open=mock_open(), create=True)
-    def test_write_lab_id(self, mock_cm: MagicMock, _open: MagicMock, _remove: MagicMock):
+    def test_write_lab_id(self, _open: MagicMock, _remove: MagicMock):
         """
         Test lab id write method
-
-        :param mock_cm: [description]
-        :type mock_cm: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         # test ip model write
         self.cache.write_lab_id(None)
         _remove.assert_called_once()
@@ -242,20 +238,19 @@ class TestCache(unittest.TestCase):
 
     @patch('builtins.open', mock_open(read_data="data"))
     @patch('json.load')
-    def test_read(self, mock_cm: MagicMock, mock_js_load: MagicMock):
+    def test_read(self, mock_js_load: MagicMock):
         """
         Test cache volume reads
 
         :param mock_js_load: mocked json.load function
         :type mock_js_load: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("MONITOR_CACHE")
         mock_payload = Mock(spec=dict)
         mock_js_load.return_value = mock_payload
         self.assertTrue(self.cache.read("test.json") is mock_payload)
 
     @patch.object(os, 'remove')
-    def test_clear(self, mock_cm: MagicMock, mock_os: MagicMock):
+    def test_clear(self, mock_os: MagicMock):
         """
         Test removal of cache runtime object artefacts
 
@@ -263,7 +258,6 @@ class TestCache(unittest.TestCase):
         :type mock_os: MagicMock
         """
         # test sanity
-        mock_cm.return_value.get_env.return_value = os.environ.get("MONITOR_CACHE")
         self.cache.clear("test.json")
         mock_os.assert_called_once_with("{}/test.json".format(os.environ.get("MONITOR_CACHE")))
         # test file not found exception handle
@@ -272,7 +266,7 @@ class TestCache(unittest.TestCase):
         self.cache.clear("nonexistant.json")
 
     @patch.object(os, 'remove')
-    def test_clear_thumbnail(self, mock_cm: MagicMock, mock_os: MagicMock):
+    def test_clear_thumbnail(self, mock_os: MagicMock):
         """
         Test removal of experiment thumbnail image from cache volume
 
@@ -280,7 +274,6 @@ class TestCache(unittest.TestCase):
         :type mock_os: MagicMock
         """
         # test sanity
-        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         self.cache.clear_thumbnail()
         mock_os.assert_called_once_with("{}/thumbnail.png".format(os.environ.get("COMMON")))
         # test file not found handle

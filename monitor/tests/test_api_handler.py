@@ -50,9 +50,7 @@ class TestApiHandler(unittest.TestCase):
 
     def setUp(self):
         logging.disable()
-        with patch('monitor.environment.context_manager.ContextManager.__enter__') as mock:
-            mock.get_env.side_effect = self.override
-            self.api_handler = ApiHandler()
+        self.api_handler = ApiHandler()
 
     def tearDown(self):
         del self.api_handler
@@ -671,10 +669,3 @@ class TestApiHandler(unittest.TestCase):
             with self.subTest("Testing Exception: {}".format(exc)):
                 mock.side_effect = exc
                 self.assertFalse(self.api_handler.refresh_jwt())
-
-    @staticmethod
-    def override(args):
-        if args in ["API_BASE_URL"]:
-            return backend.API_BASE_URL
-        elif args in ["API_BASE_PATH"]:
-            return backend.API_BASE_PATH
