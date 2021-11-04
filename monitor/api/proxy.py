@@ -13,7 +13,6 @@ from monitor.imaging.capture import Capture
 from monitor.cloud.api_handler import ApiHandler
 from monitor.models.experiment import Experiment
 from monitor.events.event_handler import EventHandler
-from monitor.environment.context_manager import ContextManager
 ```
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
@@ -32,10 +31,10 @@ from monitor.events.registry import Registry as events
 
 class ApiProxy:
 
-    def __init__(self):
+    def __init__(self, base_url: str, base_path: str):
         # register logger with module name
         self._logger = logging.getLogger(__name__)
-        self._api_handler = ApiHandler()
+        self._api_handler = ApiHandler(base_url, base_path)
         self.cache = ProxyCache()
         # stage pipeline execution sequences
         events.preview_pipeline.stage(self.upload_preview, 1)

@@ -17,7 +17,6 @@ import json
 import logging
 import requests
 from retry import retry
-from monitor.environment.context_manager import ContextManager
 ```
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
@@ -30,7 +29,6 @@ import requests
 
 from retry import retry
 from monitor.environment.state_manager import StateManager
-from monitor.environment.context_manager import ContextManager
 from monitor.environment.thread_manager import ThreadManager as tm
 
 
@@ -44,14 +42,13 @@ class ApiHandler:
     Class that processes the service requests related to obtaining our device information
     """
 
-    def __init__(self):
+    def __init__(self, base_url: str, base_path: str):
         # bind logging to config file
         self._logger = logging.getLogger(__name__)
         # add a session object interfacing requests (enables context management)
         self.session = requests.Session()
-        with ContextManager() as context:
-            self.url = context.get_env('API_BASE_URL') + context.get_env('API_BASE_PATH')
-            self._logger.info("Set api url to %s", self.url)
+        self.url = base_url + base_path
+        self._logger.info("Set api url to %s", self.url)
         self._logger.info("Instantiation successful.")
 
     @tm.lock(tm.api_lock)
