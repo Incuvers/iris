@@ -9,8 +9,10 @@ Model object for experiment info
 Dependencies:
 -------------
 ```
-from typing import Optional
+from typing import Any, Dict, Optional
 from datetime import datetime
+from monitor.logs.formatter import pformat
+from monitor.models.state import StateModel
 ```
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
@@ -19,43 +21,46 @@ Proprietary and confidential
 
 from typing import Any, Dict, Optional
 from datetime import datetime
+from monitor.logs.formatter import pformat
+from monitor.models.state import StateModel
 
 
-class Experiment:
+class Experiment(StateModel):
 
-    def __init__(self):
-        self._id_set = False
-        self._name_set = False
-        self._stop_at_set = False
-        self._protocol_id_set = False
-        self._imaging_profile_id_set = False
-        self._image_capture_interval_set = False
-        self._end_at_set = False
-        self._start_at_set = False
+    def __init__(self) -> None:
+        super().__init__(
+            _id=-1,
+            filename='experiment.json'
+        )
+        self.protocol_id = -1
+        self.imaging_profile_id = -1
+        self.image_capture_interval = 0
+        self.start_at = datetime.utcnow()
+        self.end_at = datetime.utcnow()
+        self.stop_at = None
 
     def __repr__(self) -> str:
-        return "Experiment: {}".format(self.getattrs())
+        return "Experiment: {}".format(pformat(self.serialize()))
 
-    def getattrs(self) -> Dict[str, Any]:
+    def serialize(self) -> Dict[str, Any]:
         """
-        Iteratively get all object properties and values
+        Serialize object into json compatible dict
 
         :return: object attributes and values
         :rtype: Dict[str, Any]
         """
-        attributes: Dict[str, Any] = {}
-        for k, v in vars(self).items():
-            if k.startswith('_{}__'.format(self.__class__.__name__)):
-                json_key = k.split('__')[-1]
-                if json_key in ['end_at', 'start_at'] or (json_key == 'stop_at' and v is not None):
-                    datetime_obj: datetime = v
-                    json_value = datetime_obj.isoformat()
-                else:
-                    json_value = v
-                attributes[json_key] = json_value
-        return attributes
+        return {
+            'id': self.id,
+            'name': self.name,
+            'protocol_id': self.protocol_id,
+            'imaging_profile_id': self.imaging_profile_id,
+            'image_capture_interval': self.image_capture_interval,
+            'start_at': self.start_at.isoformat(),
+            'end_at': self.end_at.isoformat(),
+            'stop_at': self.stop_at.isoformat() if self.stop_at else None
+        }
 
-    def setattrs(self, **kwargs) -> None:
+    def deserialize(self, **kwargs) -> None:
         """
         Iteratively set object properties
         """
@@ -67,49 +72,6 @@ class Experiment:
             else:
                 attr = v
             setattr(self, k, attr)
-
-    @property
-    def initialized(self) -> bool:
-        """
-        Check if all properties have been initialized successfully
-
-        :return: experiment init status
-        :rtype: bool
-        """
-        initialized = all(
-            [
-                self._id_set,
-                self._name_set,
-                self._stop_at_set,
-                self._protocol_id_set,
-                self._imaging_profile_id_set,
-                self._image_capture_interval_set,
-                self._end_at_set,
-                self._start_at_set
-            ]
-        )
-        return initialized
-
-    @property
-    def id(self) -> int:
-        """
-        Get experiment id
-
-        :return: experiment id
-        :rtype: int
-        """
-        return self.__id
-
-    @id.setter
-    def id(self, experiment_id: int) -> None:
-        """
-        Set experiment id
-
-        :param experiment_id: experiment id
-        :type experiment_id: int
-        """
-        self.__id = experiment_id
-        self._id_set = True
 
     @property
     def name(self) -> str:
