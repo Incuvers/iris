@@ -48,7 +48,7 @@ services:
       - MONITOR_LOGS=/app/instance/logs
       - MONITOR_CACHE=/app/instance/cache
       - MONITOR_CERTS=/app/instance/certs
-      - MONITOR_DPC=/app/instance/dpc_background
+      - MONITOR_DPC=/app/instance/dpc
       - MONITOR_MODE=monitor
       - MONITOR_ENV=development
       - RABBITMQ_ADDR=rmq:5672

@@ -38,7 +38,6 @@ from monitor.models.icb import ICB
 from monitor.imaging import constants as IC
 from monitor.events.registry import Registry as events
 from monitor.environment.state_manager import StateManager
-from monitor.environment.context_manager import ContextManager
 
 from monitor.tests import resources
 
@@ -48,8 +47,7 @@ class TestMQTT(unittest.TestCase):
     @patch.object(AWSIoTMQTTShadowClient, 'configureEndpoint', lambda self, a, b: None)
     @patch.object(AWSIoTMQTTShadowClient, 'configureCredentials', lambda self, a, KeyPath, CertificatePath: None)
     @patch.object(AWSIoTMQTTShadowClient, 'getMQTTConnection', **{'return_value': Mock(spec=AWSIoTMQTTShadowClient)})
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def setUp(self, context: MagicMock, _: MagicMock):
+    def setUp(self, _: MagicMock):
         def kill_patches():  # Create a cleanup callback that undoes our patches
             patch.stopall()  # Stops all patches started with start()
             imp.reload(mqtt)  # Reload our mqtt module which restores the original decorator
@@ -63,7 +61,6 @@ class TestMQTT(unittest.TestCase):
               lambda *x, **y: lambda f: f).start()
         patch('monitor.environment.thread_manager.ThreadManager.lock',
               lambda *x, **y: lambda f: f).start()
-        context.return_value.get_env.side_effect = self.override
         imp.reload(mqtt)  # Reloads the mqtt.py module which applies our patched decorator
         self.mqtt = mqtt.MQTT()
 
@@ -137,8 +134,7 @@ class TestMQTT(unittest.TestCase):
         trigger.assert_called_once_with(status=uis.STATUS_OK)
         mock_sm.return_value.commit.assert_called_once_with(device)
 
-    @patch.object(ContextManager, '__enter__')
-    def test__configure_connection(self, mock_cm):
+    def test__configure_connection(self):
         # mock all used inherited methods
         self.mqtt.configureAutoReconnectBackoffTime = Mock()
         self.mqtt.configureConnectDisconnectTimeout = Mock()
@@ -583,7 +579,3 @@ class TestMQTT(unittest.TestCase):
         incoming['desired']['imaging_settings']['dpc_exposure'] = updated
         self.assertDictEqual(self.mqtt.filter_delta(
             resources.SHADOW_DOCUMENT, incoming), {'desired': {'imaging_settings': {'dpc_exposure': updated}}})
-
-    @staticmethod
-    def override(args: str) -> Optional[str]:
-        return os.environ.get(args)

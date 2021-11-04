@@ -15,7 +15,6 @@ import pygame
 from monitor.sys import kernel
 from monitor.sys.rotary_knob import RotaryKnob
 from monitor.events.registry import Registry as events
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.views.canvas import Canvas
 from monitor.ui.views.loading import Loading
 from monitor.ui.menu.main import MainMenu
@@ -34,15 +33,14 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
+import os
 from monitor.environment.state_manager import PropertyCondition, StateManager
 import sys
 import logging
 import pygame  # type: ignore
 
 from monitor.sys import kernel
-# from monitor.sys.rotary_knob import RotaryKnob
 from monitor.events.registry import Registry as events
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.views.canvas import Canvas
 from monitor.ui.views.loading import Loading
 from monitor.ui.menu.main import MainMenu
@@ -65,27 +63,17 @@ class UserInterfaceController:
     values from the sensors
     """
 
-    def __init__(self):
+    def __init__(self, monitor_mode: str):
         self._logger = logging.getLogger(__name__)
         self.shutdown_flag = False
         self.reboot_flag = False
-        self.teardown_flag = False
         # show loading screen, use events.system_status.trigger(msg="Hi mom")
         self.load = True
         # don't show registration screen
         self.show_registration = False
         # don't allow user to click-out of loading screen
         self.load_exit = False
-        # RotaryKnob(
-        #     push_callback=self.knob_push,
-        #     rotate_cw_callback=self.knob_cw,
-        #     rotate_ccw_callback=self.knob_ccw
-        # )
-        with ContextManager() as context:
-            if context.get_env('MONITOR_MODE') == 'service':
-                self.service = True
-            else:
-                self.service = False
+        self.service = True if monitor_mode == 'service' else False
         self.screen, self.surface_height, self.surface_width, self.clock = self._init_pygame_menu()
         # create our canvas'
         if not self.service:
@@ -154,7 +142,8 @@ class UserInterfaceController:
         self._logger.debug("Display initialized")
         pygame.mouse.set_visible(False)
         self._logger.debug("Mouse visibility removed")
-        screen = pygame.display.set_mode(flags=pygame.NOFRAME | pygame.FULLSCREEN |pygame.HWSURFACE)
+        screen = pygame.display.set_mode(
+            flags=pygame.NOFRAME | pygame.FULLSCREEN | pygame.HWSURFACE)
         self._logger.debug("Display mode set")
         # update surface values based on screen resolution
         surface_height = screen.get_height()
@@ -268,14 +257,6 @@ class UserInterfaceController:
         """
         self.reboot_flag = True
 
-    def set_teardown_flag(self):
-        """
-        Gracefully exit pygame when snap service is stopped. This occurs when the snap service is
-        stopped as a result of shutdown. This should be the final piece of code executed upon
-        a reboot or shutdown command.
-        """
-        self.teardown_flag = True
-
     def service_loop(self):
         """
         init function that renders the ui and listens for event
@@ -289,11 +270,6 @@ class UserInterfaceController:
             elif self.reboot_flag:
                 self.reboot()
                 self.reboot_flag = False
-            elif self.teardown_flag:
-                pygame.display.quit()
-                pygame.font.quit()
-                pygame.quit()  # type: ignore
-                sys.exit(0)
             # Application events
             events = pygame.event.get()
             for event in events:
@@ -327,11 +303,6 @@ class UserInterfaceController:
             elif self.reboot_flag:
                 self.reboot()
                 self.reboot_flag = False
-            elif self.teardown_flag:
-                pygame.display.quit()
-                pygame.font.quit()
-                pygame.quit()  # type: ignore
-                sys.exit(0)
             # Application events
             events = pygame.event.get()
             for event in events:
@@ -395,19 +366,15 @@ class UserInterfaceController:
         pygame.event.post(event)  # add the event to the queue
 
     def shutdown(self):
-        with ContextManager() as context:
-            if context.get_env('MONITOR_ENV') != 'production':
-                self.set_teardown_flag()
-            else:
-                # send shutdown command through system dbus
-                try:
-                    kernel.os_cmd('dbus-send --system --print-reply --dest=org.freedesktop.login1 \
-                        /org/freedesktop/login1 "org.freedesktop.login1.Manager.PowerOff" boolean:true')
-                except OSError as exc:
-                    self._logger.critical(
-                        "Dbus shutdown command failed with message: %s and exit status: %s", exc.strerror, exc.errno)
-                else:
-                    self._logger.info("Dbus shutdown successful.")
+        # send shutdown command through system dbus
+        try:
+            kernel.os_cmd('dbus-send --system --print-reply --dest=org.freedesktop.login1 \
+                /org/freedesktop/login1 "org.freedesktop.login1.Manager.PowerOff" boolean:true')
+        except OSError as exc:
+            self._logger.critical(
+                "Dbus shutdown command failed with message: %s and exit status: %s", exc.strerror, exc.errno)
+        else:
+            self._logger.info("Dbus shutdown successful.")
 
     def reboot(self):
         # send reboot command through system dbus

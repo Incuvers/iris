@@ -61,7 +61,6 @@ class TestThreadManager(unittest.TestCase):
         """
         Test thread start
         """
-        # headless = False
         self.tm.start()
         nice.assert_called_once_with(-1)
         start.assert_called_once()

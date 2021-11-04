@@ -31,7 +31,6 @@ from monitor.models.protocol import Protocol
 from monitor.models.experiment import Experiment
 from monitor.events.registry import Registry as events
 from monitor.models.imaging_profile import ImagingProfile
-from monitor.environment.context_manager import ContextManager
 from monitor.environment.registry import StateRegistry as sr
 
 

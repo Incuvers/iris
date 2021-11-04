@@ -2,15 +2,17 @@
 """
 Experiment
 ==========
-Modified: 2021-07
+Modified: 2021-11
 
 Dependencies:
 -------------
 ```
-import logging
-import pygame
+import os
 import math
+import pygame
+import logging
 from datetime import datetime
+from pathlib import Path
 
 from monitor.ui.components.widget import Widget
 from monitor.ui.components.text_box import TextBox
@@ -18,18 +20,19 @@ from monitor.ui.components.progress_bar import ProgressBar
 from monitor.ui.components.loading_wheel import LoadingWheel
 from monitor.environment.state_manager import StateManager
 from monitor.events.registry import Registry as events
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
+
 ```
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
-import logging
-from pathlib import Path
-import pygame
+import os
 import math
+import pygame
+import logging
 from datetime import datetime
+from pathlib import Path
 
 from monitor.ui.components.widget import Widget
 from monitor.ui.components.text_box import TextBox
@@ -37,7 +40,6 @@ from monitor.ui.components.progress_bar import ProgressBar
 from monitor.ui.components.loading_wheel import LoadingWheel
 from monitor.environment.state_manager import StateManager
 from monitor.events.registry import Registry as events
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 
 
@@ -103,11 +105,10 @@ class ExperimentWidget(Widget):
             scaling=(50, 50)
         )
         self.font_path = uis.FONT_PATH
-        with ContextManager() as context:
-            self.thumbnail_path = context.get_env('COMMON') + '/thumbnail.png'
-            # always render thumbnail if it exists
-            if Path(self.thumbnail_path).exists():
-                self.render_dpc()
+        self.thumbnail_path = os.environ.get('COMMON', default='/etc/iris') + '/thumbnail.png'
+        # always render thumbnail if it exists
+        if Path(self.thumbnail_path).exists():
+            self.render_dpc()
         self.redraw()
         events.capture_pipeline.stage(self.acquiring, 0)
         events.thumbnail_pipeline.stage(self.render_dpc, 1)

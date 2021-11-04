@@ -19,7 +19,6 @@ from monitor.cache.cache import SystemCache
 from monitor.models.protocol import Protocol
 from monitor.models.experiment import Experiment
 from monitor.models.imaging_profile import ImagingProfile
-from monitor.environment.context_manager import ContextManager
 ```
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
@@ -44,7 +43,6 @@ from monitor.environment.cache import SystemCache
 from monitor.models.protocol import Protocol
 from monitor.models.experiment import Experiment
 from monitor.models.imaging_profile import ImagingProfile
-from monitor.environment.context_manager import ContextManager
 
 
 class TestCache(unittest.TestCase):
@@ -168,30 +166,24 @@ class TestCache(unittest.TestCase):
 
     @patch.object(Path, 'exists', **{'return_value': True})
     @patch.object(Event, 'trigger', autospec=True)
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_load_thumbnail(self, mock_cm: MagicMock, mock_event: MagicMock, _: MagicMock):
+    def test_load_thumbnail(self, mock_event: MagicMock, _: MagicMock):
         """
         Test load experiment thumbnail and event trigger
 
-        :param mock_cm: mocked context manager
-        :type mock_cm: MagicMock
         :param mock_event: mocked event object
         :type mock_event: MagicMock
         :param _: mocked path.exist function call with return True
         :type _: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = "MONITOR_CACHE"
         self.cache.load_thumbnail()
         mock_event.assert_called_once()
 
     @patch('builtins.open', _open=mock_open(), create=True)
     @patch('json.dump')
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_write(self, mock_cm: MagicMock, mock_js_dump: MagicMock, _open: MagicMock):
+    def test_write(self, mock_js_dump: MagicMock, _open: MagicMock):
         """
         Test cache writes
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("MONITOR_CACHE")
         # test all models write
         for model in [Mock(spec=ImagingProfile), Mock(spec=Device), Mock(spec=Experiment), Mock(spec=Protocol)]:
             with self.subTest("Testing model {} cache write".format(model)):
@@ -203,15 +195,10 @@ class TestCache(unittest.TestCase):
 
     @patch.object(os, 'remove')
     @patch('builtins.open', _open=mock_open(), create=True)
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_write_lab_id(self, mock_cm: MagicMock, _open: MagicMock, _remove: MagicMock):
+    def test_write_lab_id(self, _open: MagicMock, _remove: MagicMock):
         """
         Test lab id write method
-
-        :param mock_cm: [description]
-        :type mock_cm: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         # test ip model write
         self.cache.write_lab_id(None)
         _remove.assert_called_once()
@@ -221,42 +208,29 @@ class TestCache(unittest.TestCase):
         _open.return_value.__enter__.return_value.write.assert_called_with("1")
 
     @patch('builtins.open', _open=mock_open(), create=True)
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_write_device_avatar(self, mock_cm: MagicMock, _open: MagicMock):
+    def test_write_device_avatar(self, _open: MagicMock):
         """
         Test device avatar write
-
-        :param mock_cm: [description]
-        :type mock_cm: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         # test ip model write
         self.cache.write_device_avatar(b'')
         _open.return_value.__enter__.return_value.write.assert_called_with(b'')
 
     @patch('builtins.open', _open=mock_open(), create=True)
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_write_thumbnail(self, mock_cm: MagicMock, _open: MagicMock):
+    def test_write_thumbnail(self, _open: MagicMock):
         """
         Test device avatar write
-
-        :param mock_cm: [description]
-        :type mock_cm: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         # test ip model write
         self.cache.write_thumbnail(b'')
         _open.return_value.__enter__.return_value.write.assert_called_with(b'')
 
     @patch('builtins.open', _open=mock_open(read_data="data"))
     @patch('json.load')
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_read_lab_id(self, mock_cm: MagicMock, load: MagicMock, _open: MagicMock):
+    def test_read_lab_id(self, load: MagicMock, _open: MagicMock):
         """
         Test lab id file parsing.
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
-        mock_cm.return_value.parse_id.return_value = "1"
         _open.side_effect = FileNotFoundError
         self.assertEqual(self.cache.read_lab_id(), None)
         _open.side_effect = None
@@ -264,34 +238,26 @@ class TestCache(unittest.TestCase):
 
     @patch('builtins.open', mock_open(read_data="data"))
     @patch('json.load')
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_read(self, mock_cm: MagicMock, mock_js_load: MagicMock):
+    def test_read(self, mock_js_load: MagicMock):
         """
         Test cache volume reads
 
-        :param mock_cm: mocked context manager
-        :type mock_cm: MagicMock
         :param mock_js_load: mocked json.load function
         :type mock_js_load: MagicMock
         """
-        mock_cm.return_value.get_env.return_value = os.environ.get("MONITOR_CACHE")
         mock_payload = Mock(spec=dict)
         mock_js_load.return_value = mock_payload
         self.assertTrue(self.cache.read("test.json") is mock_payload)
 
     @patch.object(os, 'remove')
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_clear(self, mock_cm: MagicMock, mock_os: MagicMock):
+    def test_clear(self, mock_os: MagicMock):
         """
         Test removal of cache runtime object artefacts
 
-        :param mock_cm: mocked context manager
-        :type mock_cm: MagicMock
         :param mock_os: mocked os module
         :type mock_os: MagicMock
         """
         # test sanity
-        mock_cm.return_value.get_env.return_value = os.environ.get("MONITOR_CACHE")
         self.cache.clear("test.json")
         mock_os.assert_called_once_with("{}/test.json".format(os.environ.get("MONITOR_CACHE")))
         # test file not found exception handle
@@ -300,18 +266,14 @@ class TestCache(unittest.TestCase):
         self.cache.clear("nonexistant.json")
 
     @patch.object(os, 'remove')
-    @patch.object(ContextManager, '__enter__', **{'return_value': Mock(spec=ContextManager)})
-    def test_clear_thumbnail(self, mock_cm: MagicMock, mock_os: MagicMock):
+    def test_clear_thumbnail(self, mock_os: MagicMock):
         """
         Test removal of experiment thumbnail image from cache volume
 
-        :param mock_cm: mocked context manager
-        :type mock_cm: MagicMock
         :param mock_os: mocked os module
         :type mock_os: MagicMock
         """
         # test sanity
-        mock_cm.return_value.get_env.return_value = os.environ.get("COMMON")
         self.cache.clear_thumbnail()
         mock_os.assert_called_once_with("{}/thumbnail.png".format(os.environ.get("COMMON")))
         # test file not found handle
