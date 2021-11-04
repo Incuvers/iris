@@ -46,6 +46,10 @@ import fcntl
 import struct
 from pathlib import Path
 from typing import Optional
+from monitor.models.device import Device
+from monitor.models.experiment import Experiment
+from monitor.models.imaging_profile import ImagingProfile
+from monitor.models.protocol import Protocol
 from monitor.sys import kernel
 from monitor.sys import decorators
 from monitor.cloud.mqtt import MQTT
@@ -458,3 +462,65 @@ def get_ip_address(_iface: str) -> str:
     except OSError:
         ip_addr = "No IP"
     return ip_addr
+
+def write_img(img: bytes, filename:str) -> None:
+    """
+    Write image file to disk
+
+    :param img: byte encoded image
+    :type img: bytes
+    :param filename: image filename
+    :type filename: str
+    """
+    base_path = os.environ.get('COMMON', default='/etc/iris')
+    img_path = f'{base_path}/{filename}'
+    with open(img_path, 'wb') as img_file:
+        img_file.write(img)
+
+def read_lab_id() -> Optional[int]:
+    """
+    Read cached lab id from disk
+
+    :return: lab id if specified
+    :rtype: Optional[int]
+    """
+    try:
+        with open(os.environ.get('MONITOR_CERTS', default='/etc/iris/certs') + '/lab_id.txt', 'r') as fp:
+            contents = fp.readlines()
+    except FileNotFoundError:
+        return None
+    return int("".join(list(map(lambda x: x.rstrip(), contents))))
+
+def write_lab_id(lab_id: Optional[int]) -> None:
+    """
+    Writes lab_id to the local lab_id file (lab_id.txt)
+    """
+    fp = os.environ.get('MONITOR_CERTS', default='/etc/iris/certs') + '/lab_id.txt'
+    if lab_id is None and os.path.isfile(fp):
+        os.remove(fp)
+        return
+    with open(fp, 'w+') as fp:
+        fp.write(f"{lab_id}")
+
+def clear_cache() -> None:
+    """
+    Clear state model cache
+    """
+    cache_base_path = os.environ.get('MONITOR_CACHE', default='/etc/iris/cache')
+    for filename in [Device.FILENAME, Experiment.FILENAME, ImagingProfile.FILENAME, Protocol.FILENAME]:
+        fp = f'{cache_base_path}/{filename}'
+        try:
+            os.remove(fp)
+        except FileNotFoundError:
+            pass
+
+def clear_thumbnail() -> None:
+    """
+    Remove thumbnail image from COMMON
+    """
+    # remove cached thumbnail image
+    filename = os.environ.get('COMMON', default='/etc/iris') + "/thumbnail.png"
+    try:
+        os.remove(filename)
+    except FileNotFoundError:
+        pass
