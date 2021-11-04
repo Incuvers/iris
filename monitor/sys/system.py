@@ -29,7 +29,6 @@ from monitor.arduino_link.icb_logger import ICBLogger
 from monitor.microscope.microscope import Microscope as scope
 from monitor.events.registry import Registry as events
 from monitor.flash_service.flash_service import FlashService
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 ```
