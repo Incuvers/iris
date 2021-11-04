@@ -20,10 +20,12 @@ from monitor.models.state import StateModel
 
 class Protocol(StateModel):
 
+    FILENAME = 'protocol.json'
+
     def __init__(self):
         super().__init__(
             _id=-1,
-            filename='protocol.json'
+            filename=self.FILENAME
         )
         self.name = "Default Protocol"
         self.setpoints = []

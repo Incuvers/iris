@@ -30,13 +30,15 @@ from monitor.models.state import StateModel
 
 class Device(StateModel):
 
+    FILENAME='device.json'
+
     def __init__(self) -> None:
         """
         Set default device properties 
         """
         super().__init__(
             _id=os.environ.get('ID', default=""),
-            filename='device.json'
+            filename=self.FILENAME
         )
         self.name = "IRIS"
         self.jwt = None

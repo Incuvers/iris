@@ -27,14 +27,13 @@ from monitor.models.state import StateModel
 
 
 class ImagingProfile(StateModel):
-    """
-    Mutable Imaging profile
-    """
+
+    FILENAME = 'imaging.json'
 
     def __init__(self):
         super().__init__(
             _id=-1,
-            filename='imaging.json'
+            filename = self.FILENAME
         )
         # set defaults
         self.id = -1

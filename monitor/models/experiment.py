@@ -27,10 +27,12 @@ from monitor.models.state import StateModel
 
 class Experiment(StateModel):
 
+    FILENAME='experiment.json'
+
     def __init__(self) -> None:
         super().__init__(
             _id=-1,
-            filename='experiment.json'
+            filename=self.FILENAME
         )
         self.protocol_id = -1
         self.imaging_profile_id = -1
