@@ -92,7 +92,6 @@ class Experiment(StateModel):
         :type name: str
         """
         self.__name = name
-        self._name_set = True
 
     @property
     def protocol_id(self) -> Optional[int]:
@@ -113,7 +112,6 @@ class Experiment(StateModel):
         :type protocol_id: Optional[int]
         """
         self.__protocol_id = protocol_id
-        self._protocol_id_set = True
 
     @property
     def imaging_profile_id(self) -> int:
@@ -134,7 +132,6 @@ class Experiment(StateModel):
         :type imaging_profile_id: int
         """
         self.__imaging_profile_id = imaging_profile_id
-        self._imaging_profile_id_set = True
 
     @property
     def image_capture_interval(self) -> int:
@@ -155,7 +152,6 @@ class Experiment(StateModel):
         :type imaging_capture_interval: int
         """
         self.__image_capture_interval = imaging_capture_interval
-        self._image_capture_interval_set = True
 
     @property
     def start_at(self) -> datetime:
@@ -176,7 +172,6 @@ class Experiment(StateModel):
         :type start_at: datetime
         """
         self.__start_at = start_at
-        self._start_at_set = True
 
     @property
     def end_at(self) -> datetime:
@@ -197,7 +192,6 @@ class Experiment(StateModel):
         :type end_at: datetime
         """
         self.__end_at = end_at
-        self._end_at_set = True
 
     @property
     def stop_at(self) -> Optional[datetime]:
@@ -218,7 +212,6 @@ class Experiment(StateModel):
         :type value: datetime
         """
         self.__stop_at = stop_at
-        self._stop_at_set = True
 
     @property
     def duration(self) -> float:
