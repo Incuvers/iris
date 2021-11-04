@@ -58,8 +58,6 @@ class Device(StateModel):
             'name': self.name,
             'jwt': self.jwt,
             'lab_id': self.lab_id,
-            'mqtt_status': self.mqtt_status,
-            'amqp_status': self.amqp_status,
             'jwt_payload': self.jwt_payload
         }
 
