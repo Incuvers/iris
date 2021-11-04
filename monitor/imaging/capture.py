@@ -11,23 +11,25 @@ minimal __repr__. In addition it houses the capture conversions required for pos
 Dependencies:
 -------------
 ```
-import json
-import logging.config
-import requests
-from monitor.environment.context_manager import ContextManager
-from retry import retry
-```
-Copyright © 2021 Incuvers. All rights reserved.
-Unauthorized copying of this file, via any medium is strictly prohibited
-Proprietary and confidential
-"""
+import os
 import sys
 import logging
 from typing import List
 import numpy as np
 from io import BytesIO
 from PIL import Image
-from monitor.environment.context_manager import ContextManager
+```
+Copyright © 2021 Incuvers. All rights reserved.
+Unauthorized copying of this file, via any medium is strictly prohibited
+Proprietary and confidential
+"""
+import os
+import sys
+import logging
+from typing import List
+import numpy as np
+from io import BytesIO
+from PIL import Image
 
 
 class Capture:
@@ -47,8 +49,8 @@ class Capture:
         if index != 4:
             # processing dpc images
             converted_capture = self.captures[index]
-            with ContextManager() as context:
-                bg_fname = f'{context.get_env("COMMON_DPC")}/dpc_{self.dpc_exposure}_{index}.npz'
+            dpc_base_path = os.environ.get('MONITOR_DPC', default='/etc/iris/dpc')
+            bg_fname = f'{dpc_base_path}/dpc_{self.dpc_exposure}_{index}.npz'
             converted_capture = self.background_normalize(converted_capture, bg_fname)
             # only convert to uint8 at the end to preserve data integrity
             converted_capture = converted_capture.astype(np.uint8)
@@ -60,7 +62,7 @@ class Capture:
         self._logger.debug("File size: %s", sys.getsizeof(to_return) / 1024. / 1024.)
         return to_return
 
-    def background_normalize(self, capture:np.ndarray, bg_fname:str) -> np.ndarray:
+    def background_normalize(self, capture: np.ndarray, bg_fname: str) -> np.ndarray:
         """
         Normalize by a background image
         Both need to be the same shape
@@ -70,7 +72,8 @@ class Capture:
             try:
                 background_img = img['data']
             except FileNotFoundError:
-                self._logger.warning("DPC background: %s not found. Image is NOT normalized.", bg_fname)
+                self._logger.warning(
+                    "DPC background: %s not found. Image is NOT normalized.", bg_fname)
             else:
                 capture = capture / background_img * np.mean(background_img)
         return capture

@@ -13,7 +13,6 @@ from pathlib import Path
 from monitor.sys import system
 from monitor.__version__ import __version__
 from monitor.ui.menu.pgm.menu import Menu
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 ```
 Copyright © 2021 Incuvers. All rights reserved.

@@ -17,14 +17,13 @@ from datetime import datetime
 from datetime import timedelta
 from matplotlib import pyplot as plt
 from monitor.environment.thread_manager import ThreadManager as tm
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 ```
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
-
+import os
 import time
 import numpy as np
 import logging
@@ -33,7 +32,6 @@ from datetime import datetime
 from datetime import timedelta
 from matplotlib import pyplot as plt
 from monitor.ui.static.settings import UISettings as uis
-from monitor.environment.context_manager import ContextManager
 from monitor.environment.thread_manager import ThreadManager as tm
 
 
@@ -323,12 +321,11 @@ class EnvironmentBenchmark:
         from the incubator
         """
         series = np.asarray(self.series)
-        with ContextManager() as context:
-            # append extension to filename
-            with open(context.get_env('COMMON') + f'/{self.filename}.csv', 'w') as fp:
-                np.savetxt(fp, series,
-                           header='Time (minutes), TC, CC, OC, TP, CP, OP',
-                           delimiter=',')
+        # append extension to filename
+        with open(os.environ.get('COMMON', default="/etc/iris") + f'/{self.filename}.csv', 'w') as fp:
+            np.savetxt(fp, series,
+                       header='Time (minutes), TC, CC, OC, TP, CP, OP',
+                       delimiter=',')
 
     def save_plot(self):
         """
@@ -337,8 +334,8 @@ class EnvironmentBenchmark:
 
         plot_img = self.update_plot()
         img = Image.fromarray(plot_img)
-        with ContextManager() as context:
-            fname = f"{context.get_env('COMMON')}/{self.filename}.png"
+
+        fname = f"{os.environ.get('COMMON')}/{self.filename}.png"
         img.save(fname, format='png', lossless=False)
 
     def update_plot(self):

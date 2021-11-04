@@ -57,7 +57,6 @@ from monitor.cloud.mqtt import MQTT
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
 from monitor.environment.state_manager import StateManager
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 
@@ -179,8 +178,7 @@ def factory_reset():
     # remove specific files #
     # if they do not exist then report success
     # if they exist delete them then report success
-    with ContextManager() as context:
-        common = context.get_env('COMMON')
+    common = os.environ.get('COMMON', default='/etc/iris')
 
     file_list = list(map(lambda x: common + x, file_list))
     dir_list = list(map(lambda x: common + x, dir_list))
@@ -213,7 +211,7 @@ def factory_reset():
                 _logger.debug("directory %s is removed", dp)
         # clear lab id for this incubator
         events.system_status.trigger(msg="Removing lab identification")
-        os.remove(context.get_env('COMMON_CERTS') + 'lab_id.txt')
+        os.remove(os.environ.get('MONITOR_CERTS', '/etc/iris/certs') + 'lab_id.txt')
     except BaseException as exc:
         _logger.exception("Factory reset failed: %s", exc)
         events.system_status.trigger(
@@ -233,8 +231,7 @@ def reset_network():
     """
     Locates the user netplan yaml file and removes it.
     """
-    with ContextManager() as context:
-        monitor_netplan = context.get_env('MONITOR_NETPLAN')
+    monitor_netplan = os.environ.get('MONITOR_NETPLAN', default='/etc/netplan')
     # filter by all netplan files but the default 50-cloud-init template
     netplan_files = list(filter(lambda x: x != '50-cloud-init.yaml', os.listdir(monitor_netplan)))
     try:
@@ -325,8 +322,7 @@ def calibrate_dpc():
     try:
         _logger.info("Starting DPC background calibration.")
         events.system_status.trigger(msg="Performing calibration. This may take a while.")
-        with ContextManager() as context:
-            background_path = context.get_env('COMMON_DPC')
+        background_path = os.environ.get('MONITOR_DPC', default='/etc/iris/dpc')
         if not os.path.isdir(background_path):
             os.makedirs(background_path, mode=0o777, exist_ok=True)
         # full exposure grade sweep
