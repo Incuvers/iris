@@ -12,13 +12,12 @@ handler () {
         exit "$1"
     fi
 }
-export ID=""
 printf "%b" "${OKB}Executing unittest suite${NC}\n"
 # execute case unittests or entire suite
 if [ -z "$1" ]; then
-    python3 -m unittest discover -v -s monitor/tests
+    nosetests
 else
-    python3 -m unittest -v monitor/tests/test_"$1".py
+    nosetests test_"$1".py
 fi
 
 printf "%b" "${OKG} ✓ ${NC} Pass\n"

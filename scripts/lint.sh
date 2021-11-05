@@ -22,5 +22,5 @@ shellcheck -x scripts/*
 printf "%b" "${OKG} ✓ ${NC} Pass\n"
 
 printf "%b" "${OKB}Linting python w/ flake8${NC}\n"
-flake8 .
+flake8
 printf "%b" "${OKG} ✓ ${NC} Pass\n"

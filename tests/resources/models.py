@@ -3,7 +3,7 @@ Monitor Runtime Models
 ======================
 """
 from datetime import datetime
-from monitor.tests.resources.backend import SAMPLE_JWT, SAMPLE_JWT_PAYLOAD
+from tests.resources.backend import SAMPLE_JWT, SAMPLE_JWT_PAYLOAD
 
 ISO_DATETIME_START = "2020-10-29 15:15:03.563774+00:00"
 ISO_DATETIME_END = "2020-10-30 15:15:03.563774+00:00"

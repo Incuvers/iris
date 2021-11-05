@@ -19,9 +19,8 @@ import copy
 import logging
 import unittest
 from unittest.mock import MagicMock, Mock, call, patch
-from monitor.tests import resources
 
-from monitor.tests.resources import models
+from tests.resources import models
 from monitor.events.event import Event
 from monitor.api.proxy import ApiProxy
 from monitor.api.cache import ProxyCache
@@ -36,10 +35,10 @@ class TestProxy(unittest.TestCase):
 
     @patch.object(Pipeline, 'stage', lambda self, func, i: None)
     @patch.object(Event, 'register', lambda self, _: None)
-    @patch.object(ApiHandler, '__init__', lambda _: None)
+    @patch.object(ApiHandler, '__init__', lambda a,b,c: None)
     def setUp(self):
         logging.disable()
-        self.proxy = ApiProxy()
+        self.proxy = ApiProxy(base_url='localhost',base_path='/v1')
 
     def tearDown(self):
         del self.proxy

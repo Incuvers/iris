@@ -1,9 +1,8 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Protocol
 ========
-Modified: 2020-11
+Modified: 2021-11
 
 Dependencies:
 -------------
@@ -14,82 +13,55 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List
+from monitor.logs.formatter import pformat
+from monitor.models.setpoint import Setpoint
+from monitor.models.state import StateModel
 
+class Protocol(StateModel):
 
-class Protocol:
+    FILENAME = 'protocol.json'
 
     def __init__(self):
-        self._id_set = False
-        self._name_set = False
-        self._repeats_set = False
-        self._setpoints_set = False
-        self._setpoint_index_set = True
+        super().__init__(
+            _id=-1,
+            filename=self.FILENAME
+        )
+        self.name = "Default Protocol"
+        self.setpoints = []
+        self.repeats = 0
 
     def __repr__(self) -> str:
-        return "Protocol:{}".format(self.getattrs())
+        return "Protocol: {}".format(pformat(self.serialize()))
 
-    def getattrs(self) -> Dict[str, Any]:
+    def serialize(self) -> Dict[str, Any]:
         """
-        Iteratively get all object properties and values
+        Serialize object into json compatible dict
 
         :return: object attributes and values
         :rtype: Dict[str, Any]
         """
-        attributes: Dict[str, Any] = {}
-        for k, v in vars(self).items():
-            # only return property values
-            if k.startswith('_{}__'.format(self.__class__.__name__)):
-                json_key = k.split('__')[-1]
-                attributes[json_key] = v 
-        return attributes
+        return {
+            'id': self.id,
+            'name': self.name,
+            'repeats': self.repeats,
+            'setpoints': [ setpoint.serialize() for setpoint in self.setpoints ],
+        }
 
-    def setattrs(self, **kwargs) -> None:
+    def deserialize(self, **kwargs) -> None:
         """
         Iteratively set object properties
         """
         for k, v in kwargs.items():
-            # repeats in the context of loops
+            if k == 'setpoints':
+                # translate setpoints payload to setpoint models
+                setpoints: List[Setpoint] = []
+                for sp in v:
+                    setpoint = Setpoint()
+                    setpoint.deserialize(**sp)
+                    setpoints.append(setpoint)
+                setattr(self, k, setpoints)
             setattr(self, k, v)
-
-    @property
-    def initialized(self) -> bool:
-        """
-        Check if all properties have been initialized successfully
-
-        :return: protocol init status
-        :rtype: bool
-        """
-        initialized = all(
-            [
-                self._id_set,
-                self._name_set,
-                self._repeats_set,
-                self._setpoints_set,
-            ]
-        )
-        return initialized
-
-    @property
-    def id(self) -> int:
-        """
-        Get protocol id
-
-        :return: protocol id
-        :rtype: int
-        """
-        return self.__id
-
-    @id.setter
-    def id(self, protocol_id: int) -> None:
-        """
-        Set protocol id
-
-        :param protocol_id: [description]
-        :type protocol_id: int
-        """
-        self.__id = protocol_id
-        self._id_set = True
 
     @property
     def name(self) -> str:
@@ -110,7 +82,6 @@ class Protocol:
         :type name: str
         """
         self.__name = name
-        self._name_set = True
 
     @property
     def repeats(self) -> int:
@@ -131,25 +102,23 @@ class Protocol:
         :type repeats: int
         """
         self.__repeats = repeat
-        self._repeats_set = True
 
     @property
-    def setpoints(self) -> List[Dict[str, Union[int, float]]]:
+    def setpoints(self) -> List[Setpoint]:
         """
         Get protocol setpoints
 
         :return: protocol setpoints 
-        :rtype: List[Dict[str, Any]]
+        :rtype: List[Setpoint]
         """
         return self.__setpoints
 
     @setpoints.setter
-    def setpoints(self, setpoints: List[Dict[str, Any]]) -> None:
+    def setpoints(self, setpoints: List[Setpoint]) -> None:
         """
         Set protocol setpoints
 
         :param setpoints: protocol setpoints
-        :type setpoints: List[Dict[str, Any]]
+        :type setpoints: List[Setpoint]
         """
         self.__setpoints = setpoints
-        self._setpoints_set = True

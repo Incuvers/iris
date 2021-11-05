@@ -1,11 +1,19 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Imaging Profile
 ===============
-Modified: 2021-01
+Modified: 2021-11
 
 Model object for imaging profile info
+
+Dependencies:
+-------------
+```
+from typing import Any, Dict
+import monitor.imaging.constants as IC
+from monitor.logs.formatter import pformat
+from monitor.models.state import StateModel
+```
 
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
@@ -14,50 +22,65 @@ Proprietary and confidential
 
 from typing import Any, Dict
 import monitor.imaging.constants as IC
+from monitor.logs.formatter import pformat
+from monitor.models.state import StateModel
 
 
-class ImagingProfile:
-    """
-    Mutable Imaging profile
-    """
+class ImagingProfile(StateModel):
+
+    FILENAME = 'imaging.json'
 
     def __init__(self):
-        self._id_set = False
-        self._name_set = False
-        self._dpc_gain_set = False
-        self._dpc_exposure_set = False
-        self._dpc_brightness_set = False
-        self._dpc_inner_radius_set = False
-        self._dpc_outer_radius_set = False
-        self._gfp_capture_set = False
-        self._gfp_brightness_set = False
-        self._gfp_gain_set = False
-        self._gfp_exposure_set = False
+        super().__init__(
+            _id=-1,
+            filename = self.FILENAME
+        )
         # set defaults
         self.id = -1
-        self.name = "IRIS"
+        self.name = "Default Imaging Profile"
         self.dpc_inner_radius = 3.0
         self.dpc_outer_radius = 4.0
+        self.dpc_brightness = 0
+        self.dpc_gain = 0
+        self.dpc_exposure = 0
+        self.gfp_brightness = 0
+        self.gfp_gain = 0
+        self.gfp_exposure = 0
         self.gfp_capture = False
 
     def __repr__(self) -> str:
-        return "ImagingProfile: {}".format(self.getattrs())
+        return "ImagingProfile: {}".format(pformat(self.serialize()))
 
-    def getattrs(self) -> Dict[str, Any]:
+    def serialize(self) -> Dict[str, Any]:
         """
-        Iteratively get all object properties and values
+        Serialize object into json compatible dict
 
         :return: object attributes and values
         :rtype: Dict[str, Any]
         """
-        attributes: Dict[str, Any] = {}
-        for k, v in vars(self).items():
-            # only return property values
-            if k.startswith('_{}__'.format(self.__class__.__name__)):
-                attributes[k.split('__')[-1]] = v
-        return attributes
+        return {
+            'id': self.id,
+            'name': self.name,
+            'dpc_brightness': self.dpc_brightness,
+            'gfp_brightness': self.gfp_brightness,
+            'dpc_gain': self.dpc_gain,
+            'gfp_gain': self.gfp_gain,
+            'dpc_exposure': self.dpc_exposure,
+            'gfp_exposure': self.gfp_exposure,
+            'dpc_inner_radius': self.dpc_inner_radius,
+            'dpc_outer_radius': self.dpc_outer_radius,
+            'gain_min': self.gain_min,
+            'gain_max': self.gain_max,
+            'brightness_min': self.brightness_min,
+            'brightness_max': self.brightness_max,
+            'dpc_exposure_min': self.dpc_exposure_min,
+            'dpc_exposure_max': self.dpc_exposure_max,
+            'gfp_exposure_min': self.gfp_exposure_min,
+            'gfp_exposure_max': self.gfp_exposure_max,
+            'gfp_capture': self.gfp_capture
+        }
 
-    def setattrs(self, **kwargs) -> None:
+    def deserialize(self, **kwargs) -> None:
         """
         Iteratively set object properties
         """
@@ -66,51 +89,6 @@ class ImagingProfile:
             if k not in ['gain_min', 'gain_max', 'brightness_max', 'brightness_min', 'gfp_exposure_min',
                          'gfp_exposure_max', 'dpc_exposure_max', 'dpc_exposure_min']:
                 setattr(self, k, v)
-
-    @property
-    def initialized(self) -> bool:
-        """
-        Get imaging profile init status
-
-        :return: imaging profile init status
-        :rtype: bool
-        """
-        return all(
-            [
-                self._id_set,
-                self._name_set,
-                self._dpc_gain_set,
-                self._dpc_exposure_set,
-                self._dpc_brightness_set,
-                self._dpc_inner_radius_set,
-                self._gfp_capture_set,
-                self._gfp_brightness_set,
-                self._gfp_gain_set,
-                self._gfp_exposure_set,
-            ]
-        )
-        
-
-    @property
-    def id(self) -> int:
-        """
-        Get imaging profile id
-
-        :return: imaging profile id
-        :rtype: int
-        """
-        return self.__id
-
-    @id.setter
-    def id(self, id: int) -> None:
-        """
-        Set imaging profile id
-
-        :param id: imaging profile idea
-        :type id: int
-        """
-        self.__id = id
-        self._id_set = True
 
     @property
     def name(self) -> str:
@@ -131,7 +109,6 @@ class ImagingProfile:
         :type name: str
         """
         self.__name = name
-        self._name_set = True
 
     @property
     def dpc_brightness(self) -> int:
@@ -152,7 +129,6 @@ class ImagingProfile:
         :type dpc_brightness: int
         """
         self.__dpc_brightness = dpc_brightness
-        self._dpc_brightness_set = True
 
     @property
     def dpc_gain(self) -> int:
@@ -173,7 +149,6 @@ class ImagingProfile:
         :type dpc_gain: int
         """
         self.__dpc_gain = dpc_gain
-        self._dpc_gain_set = True
 
     @property
     def dpc_exposure(self) -> int:
@@ -194,7 +169,6 @@ class ImagingProfile:
         :type dpc_exposure: int
         """
         self.__dpc_exposure = dpc_exposure
-        self._dpc_exposure_set = True
 
     @property
     def dpc_inner_radius(self) -> float:
@@ -215,7 +189,6 @@ class ImagingProfile:
         :type dpc_inner_radius: float
         """
         self.__dpc_inner_radius = dpc_inner_radius
-        self._dpc_inner_radius_set = True
 
     @property
     def dpc_outer_radius(self) -> float:
@@ -236,7 +209,6 @@ class ImagingProfile:
         :type dpc_outer_radius: float
         """
         self.__dpc_outer_radius = dpc_outer_radius
-        self._dpc_outer_radius_set = True
 
     @property
     def gfp_capture(self) -> bool:
@@ -257,7 +229,6 @@ class ImagingProfile:
         :type state: bool
         """
         self.__gfp_capture = state
-        self._gfp_capture_set = True
 
     @property
     def gfp_brightness(self) -> int:
@@ -278,7 +249,6 @@ class ImagingProfile:
         :type gfp_brightness: int
         """
         self.__gfp_brightness = gfp_brightness
-        self._gfp_brightness_set = True
 
     @property
     def gfp_gain(self) -> int:
@@ -299,7 +269,6 @@ class ImagingProfile:
         :type gfp_gain: int
         """
         self.__gfp_gain = gfp_gain
-        self._gfp_gain_set = True
 
     @property
     def gfp_exposure(self) -> int:
@@ -320,7 +289,6 @@ class ImagingProfile:
         :type gfp_exposure: int
         """
         self.__gfp_exposure = gfp_exposure
-        self._gfp_exposure_set = True
 
     @property
     def gain_min(self) -> int:

@@ -1,5 +1,5 @@
 ---
-version: "2.9"
+version: "3.9"
 services:
   rmq:
     container_name: rmq
@@ -9,6 +9,8 @@ services:
     ports:
       # expose for rmq web client
       - "15672:15672"
+    networks:
+      - ampq
 
   novnc:
     container_name: novnc
@@ -36,24 +38,34 @@ services:
       - ../../:/app
     networks:
       - x11
+      - ampq
     environment:
-      - ID=${ID}
       - DISPLAY=novnc:0.0
       - SDL_VIDEODRIVER=x11
       - SDL_NOMOUSE=1
-      - SNAP=/app
-      - SNAP_DATA=/app/monitor/logs
-      - COMMON=/app/instance
       - MPLBACKEND=Agg
+      - COMMON=/app/instance
+      - MONITOR_LOGS=/app/instance/logs
       - MONITOR_CACHE=/app/instance/cache
-      - COMMON_CERTS=/app/instance/certs
-      - COMMOND_DPC=/app/instance/dpc_background
+      - MONITOR_CERTS=/app/instance/certs
+      - MONITOR_DPC=/app/instance/dpc
       - MONITOR_MODE=monitor
       - MONITOR_ENV=development
       - RABBITMQ_ADDR=rmq:5672
       - API_BASE_URL=https://api.dev.incuvers.com
       - API_BASE_PATH=/v1
 
+  hwi:
+    container_name: hwi
+    image: ghcr.io/incuvers/hwi:master
+    depends_on:
+      - rmq
+    networks:
+      - ampq
+    environment:
+      - RABBITMQ_ADDR=rmq:5672
+
 
 networks:
   x11:
+  ampq:

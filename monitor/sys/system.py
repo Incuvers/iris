@@ -1,35 +1,26 @@
 # -*- coding: utf-8 -*-
 """
-System Service Functions
-========================
-Modified: 2021-07
-
-This file is a collection standalone service (system-level) menu functions which can be accessed by any component.
+System Loader Functions
+=======================
+Modified: 2021-11
 
 Dependancies
 ------------
 ```
-from monitor.environment.state_manager import StateManager
-import time
 import os
 import logging
-from typing import Optional
 import numpy as np
-import monitor.imaging.constants as IC
-import uuid
-import socket
-import fcntl
-import struct
+
 from pathlib import Path
 from monitor.sys import kernel
 from monitor.sys import decorators
 from monitor.cloud.mqtt import MQTT
-from monitor.arduino_link.sensors import Sensors
-from monitor.arduino_link.icb_logger import ICBLogger
-from monitor.microscope.microscope import Microscope as scope
+import monitor.imaging.constants as IC
+from monitor.amqp.client import AMQPClient
+from monitor.scheduler.imaging import ImagingScheduler
 from monitor.events.registry import Registry as events
-from monitor.flash_service.flash_service import FlashService
-from monitor.environment.context_manager import ContextManager
+from monitor.scheduler.setpoint import SetpointScheduler
+from monitor.environment.state_manager import StateManager
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 ```
@@ -37,26 +28,20 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
-from monitor.scheduler.imaging import ImagingScheduler
-import time
 import os
 import logging
-from typing import Optional
 import numpy as np
-import monitor.imaging.constants as IC
-import uuid
-import socket
-import fcntl
-import struct
+
 from pathlib import Path
 from monitor.sys import kernel
 from monitor.sys import decorators
 from monitor.cloud.mqtt import MQTT
-# from monitor.microscope.microscope import Microscope as scope
+import monitor.imaging.constants as IC
+from monitor.amqp.client import AMQPClient
+from monitor.scheduler.imaging import ImagingScheduler
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
 from monitor.environment.state_manager import StateManager
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 
@@ -79,7 +64,13 @@ def main():
         else:
             _logger.info("%s", result)
         events.system_status.trigger(msg="Initializing modules")
-        _mqtt = MQTT(device_id=os.environ.get('ID', None))
+        # _mqtt = MQTT()
+        # RMQ Event config
+        host = os.environ['RABBITMQ_ADDR'].split(':')[0]
+        port = int(os.environ['RABBITMQ_ADDR'].split(':')[1])
+        AMQPClient(host, port)
+        # default irrelevant here since the init checks that ID is exported
+        _mqtt = MQTT(device_id=os.environ.get('ID', ''))
         SetpointScheduler()
         ImagingScheduler()
         # load runtime models from cache into state manager
@@ -89,14 +80,10 @@ def main():
             lab_id = device.lab_id
         _logger.info("Lab ID: %s", lab_id)
         # time.sleep(1)
-        events.system_status.trigger(msg="Initializing hardware link")
-        # time.sleep(1)
-        _logger.info("Done!")
+        # events.system_status.trigger(msg="Initializing hardware link")
+        # _logger.info("Done!")
         events.system_status.trigger(msg="Loading cloud resources")
-        _logger.info("Starting MQTT...")
         _mqtt.start()
-
-
     except BaseException as exc:
         _logger.exception(exc)
         events.system_status.trigger(
@@ -175,8 +162,7 @@ def factory_reset():
     # remove specific files #
     # if they do not exist then report success
     # if they exist delete them then report success
-    with ContextManager() as context:
-        common = context.get_env('COMMON')
+    common = os.environ.get('COMMON', default='/etc/iris')
 
     file_list = list(map(lambda x: common + x, file_list))
     dir_list = list(map(lambda x: common + x, dir_list))
@@ -209,7 +195,7 @@ def factory_reset():
                 _logger.debug("directory %s is removed", dp)
         # clear lab id for this incubator
         events.system_status.trigger(msg="Removing lab identification")
-        os.remove(context.get_env('COMMON_CERTS') + 'lab_id.txt')
+        os.remove(os.environ.get('MONITOR_CERTS', '/etc/iris/certs') + 'lab_id.txt')
     except BaseException as exc:
         _logger.exception("Factory reset failed: %s", exc)
         events.system_status.trigger(
@@ -229,8 +215,7 @@ def reset_network():
     """
     Locates the user netplan yaml file and removes it.
     """
-    with ContextManager() as context:
-        monitor_netplan = context.get_env('MONITOR_NETPLAN')
+    monitor_netplan = os.environ.get('MONITOR_NETPLAN', default='/etc/netplan')
     # filter by all netplan files but the default 50-cloud-init template
     netplan_files = list(filter(lambda x: x != '50-cloud-init.yaml', os.listdir(monitor_netplan)))
     try:
@@ -321,8 +306,7 @@ def calibrate_dpc():
     try:
         _logger.info("Starting DPC background calibration.")
         events.system_status.trigger(msg="Performing calibration. This may take a while.")
-        with ContextManager() as context:
-            background_path = context.get_env('COMMON_DPC')
+        background_path = os.environ.get('MONITOR_DPC', default='/etc/iris/dpc')
         if not os.path.isdir(background_path):
             os.makedirs(background_path, mode=0o777, exist_ok=True)
         # full exposure grade sweep
@@ -385,78 +369,3 @@ def benchmark():
     Execute all benchmarks (temp, co2, o2)
     """
     events.start_benchmark.trigger(benchmark_test_type='FULL')
-
-
-def test_connection(host: str = "8.8.8.8", port: int = 53, timeout: int = 3):
-    """
-    Tests internet connectivity
-    Test intenet connectivity by checking with Google
-    Host: 8.8.8.8 (google-public-dns-a.google.com)
-    OpenPort: 53/tcp
-    Service: domain (DNS/TCP)
-    :param host: (str) the host to test connection
-    :param port: (int) the port to use
-    :param timeout:
-    """
-    try:
-        socket.setdefaulttimeout(timeout)
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
-    except socket.error:
-        return False
-    return True
-
-
-def get_iface_list() -> list:
-    """
-    Get the list of interfaces
-    :return:  ifaces (list) : a list of interface identifiers (string)
-    """
-    # define the path
-    iface_path = Path('/sys/class/net').resolve()
-    # parse all paths from interface path
-    iface_paths = iface_path.glob("*")
-    # if file doesnt exist we skip (ie an empty list means path was not resolved)
-    ifaces_dirs = [x for x in iface_paths if x.is_dir()]
-    ifaces = list(map(
-        lambda x: x.parts[-1], ifaces_dirs
-    ))
-    if len(ifaces) == 0:
-        _logger.warning("No interfaces found in interface path: %s", iface_path)
-    return ifaces
-
-
-def get_iface_hardware_address(_iface: str) -> Optional[str]:
-    """
-    Get the hardware (MAC) address of the given interface
-    :param iface:  iface (str) interface to return the mac off
-    :return: str colon-delimited hardware address
-    """
-    if _iface not in get_iface_list():
-        _logger.warning("invalid interface: %s", _iface)
-        return None
-    try:
-        mac = open('/sys/class/net/' + _iface + '/address').readline()
-    except OSError:
-        _hex = uuid.getnode()
-        mac = ':'.join(['{:02x}'.format((_hex >> ele) & 0xff)
-                        for ele in range(0, 8 * 6, 8)][::-1])
-    return mac[0:17]
-
-
-def get_ip_address(_iface: str) -> str:
-    """
-    Get the primary IP address
-    :return: (str) standard representation of the device's IP address
-    """
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        ip_addr = socket.inet_ntoa(
-            fcntl.ioctl(
-                sock.fileno(),
-                0x8915,  # SIOCGIFADDR
-                struct.pack('256s', bytes(_iface[:15], encoding='utf8'))
-            )[20:24]
-        )
-    except OSError:
-        ip_addr = "No IP"
-    return ip_addr

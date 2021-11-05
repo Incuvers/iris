@@ -14,9 +14,11 @@ Proprietary and confidential
 
 from typing import Any, Dict, Tuple
 from datetime import datetime, timezone
+from uuid import uuid4
+from monitor.logs.formatter import pformat
+from monitor.models.state import StateModel
 
-
-class ICB:
+class ICB(StateModel):
     """
     This model is initialized to a default state but populated after sensorframe state is modified
     """
@@ -33,6 +35,10 @@ class ICB:
     HP_DEFAULT: int = 10                                            # Default heater duty
 
     def __init__(self) -> None:
+        super().__init__(
+            _id='',
+            filename='icb.json'
+        )
         self._tc_set = False
         self._rh_set = False
         self._oc_set = False
@@ -53,23 +59,38 @@ class ICB:
         self._timestamp_set = False
 
     def __repr__(self) -> str:
-        return "ICB: {}".format(self.getattrs())
+        return "ICB: {}".format(pformat(self.serialize()))
 
-    def getattrs(self) -> Dict[str, Any]:
+    def serialize(self) -> Dict[str, Any]:
         """
-        Iteratively get all object properties and values
+        Serialize object into json compatible dict
 
         :return: object attributes and values
         :rtype: Dict[str, Any]
         """
-        attributes: Dict[str, Any] = {}
-        for k, v in vars(self).items():
-            # only return property values
-            if k.startswith('_{}__'.format(self.__class__.__name__)):
-                attributes[k.split('__')[-1]] = v
-        return attributes
+        return {
+            'id': self.id,
+            'TC': self.tc,
+            'CC': self.cc,
+            'OC': self.oc,
+            'RH': self.rh,
+            'TP': self.tp,
+            'CP': self.cp,
+            'OP': self.op,
+            'TO': self.to,
+            'CT': self.ct,
+            'CTR': self.ctr,
+            'TM': self.tm,
+            'FP': self.fp,
+            'FC': self.fc,
+            'HP': self.hp,
+            'CM': self.cm,
+            'OM': self.om,
+            'IV': self.iv,
+            'timestamp': self.timestamp,
+        }
 
-    def setattrs(self, **kwargs) -> None:
+    def deserialize(self, **kwargs) -> None:
         """
         Iteratively set object properties
         """
@@ -565,3 +586,13 @@ class ICB:
         :rtype: int
         """
         return int(datetime.now(timezone.utc).timestamp() / 60 / 60 / 12)
+
+    @staticmethod
+    def generate_id() -> str:
+        """
+        Generate uuid for this instance
+
+        :return: [description]
+        :rtype: str
+        """
+        return uuid4().hex

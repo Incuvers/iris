@@ -17,6 +17,6 @@ else
 fi
 printf "%b" "${OKB}Validating docker compose configuration${NC}\n"
 cd "$DOCKER_ROOT" || exit 1
-docker compose config
+docker-compose config
 cd - > /dev/null || exit 1
 printf "%b" "${OKG} ✓ ${NC}validation complete\n"

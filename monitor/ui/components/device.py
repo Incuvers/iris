@@ -19,7 +19,6 @@ from monitor.models.experiment import Experiment
 from monitor.ui.components.loading_wheel import LoadingWheel
 from monitor.environment.state_manager import StateManager
 from monitor.events.registry import Registry as events
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 ```
 Copyright © 2021 Incuvers. All rights reserved.
@@ -37,7 +36,6 @@ from monitor.events.registry import Registry as events
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.state_manager import StateManager
 from monitor.ui.components.loading_wheel import LoadingWheel
-from monitor.environment.context_manager import ContextManager
 
 
 class Icons:
@@ -68,19 +66,15 @@ class DeviceWidget(Widget):
         events.avatar_pipeline.stage(self.load_avatar_image, 1)
         events.avatar_pipeline.stage(self.update_avatar, 2)
         api_server = ""
-        if os.environ['MONITOR_ENV'] == "development":
-            self.dev = True
-            self._logger.debug("Setting development environment text box for identification")
-            if os.environ['API_BASE_URL'] == "https://api.staging.incuvers.com":
-                api_server = "STAGING"
-                self._logger.debug("Identifying staging server")
-            elif os.environ['API_BASE_URL'] == "https://api.dev.incuvers.com":
-                api_server = "DEV"
-                self._logger.debug("Identifying dev server")
-            elif os.environ['API_BASE_URL'] == "https://api.prod.incuvers.com":
-                api_server = "PROD"
-        else:
-            self.dev = False
+        self._logger.debug("Setting development environment text box for identification")
+        if os.environ.get('API_BASE_URL') == "https://api.staging.incuvers.com":
+            api_server = "STAGING"
+            self._logger.debug("Identifying staging server")
+        elif os.environ.get('API_BASE_URL') == "https://api.dev.incuvers.com":
+            api_server = "DEV"
+            self._logger.debug("Identifying dev server")
+        elif os.environ.get('API_BASE_URL') == "https://api.prod.incuvers.com":
+            api_server = "PROD"
         self.show_status = True
         self.width = surface_width
         self.height = uis.IW_HEIGHT_RATIO * surface_height
@@ -126,13 +120,13 @@ class DeviceWidget(Widget):
 
         :raises FileNotFoundError: if the path to the avatar img is not found 
         """
-        with ContextManager() as context:
-            avatar_path_obj = Path(context.get_env('COMMON')).joinpath('device_avatar.png')
-            if avatar_path_obj.is_file():
-                avatar_path = str(avatar_path_obj)
-            else:
-                self._logger.warning("No user defined device image found. Using default image")
-                avatar_path = uis.AVATAR
+        avatar_path_obj = Path(os.environ.get('COMMON', default='/etc/iris')
+                               ).joinpath('device_avatar.png')
+        if avatar_path_obj.is_file():
+            avatar_path = str(avatar_path_obj)
+        else:
+            self._logger.warning("No user defined device image found. Using default image")
+            avatar_path = uis.AVATAR
         avatar = pygame.image.load(avatar_path)
         self._logger.info("Loaded device image")
         return avatar
@@ -235,15 +229,15 @@ class DeviceWidget(Widget):
         with StateManager() as state:
             experiment = state.experiment
             device = state.device
-        if not experiment.initialized or not experiment.active:
+        if not experiment.active:
             name = device.name
             if self.syncing:
                 self.connection_status_surf = self.icons.syncing
             else:
-                self.connection_status_surf = self.icons.online if device.connected else self.icons.offline
+                self.connection_status_surf = self.icons.online if device.mqtt_status else self.icons.offline
         else:
             name = experiment.name
-            self.connection_status_surf = self.icons.syncing if device.connected else self.icons.offline
+            self.connection_status_surf = self.icons.syncing if device.mqtt_status else self.icons.offline
         self.text_box.update_text(name)
         x_offset += self.avatar_surf.get_width() + uis.AVATAR_PADDING
         text_surf = self.text_box.redraw()
@@ -251,11 +245,10 @@ class DeviceWidget(Widget):
             y_offset = self._y_center(surface)
             self.surf.blit(surface, ((self.width - surface.get_width()) / 2, y_offset))
         # for backend stage identification only
-        if self.dev:
-            text_surf = self.api_text.redraw()
-            for surface in text_surf:
-                y_offset = self._y_center(surface)
-                self.surf.blit(surface, ((self.width - surface.get_width()) / 2, 10))
+        text_surf = self.api_text.redraw()
+        for surface in text_surf:
+            y_offset = self._y_center(surface)
+            self.surf.blit(surface, ((self.width - surface.get_width()) / 2, 10))
         # connection status
         y_offset = 25
         x_offset = self.width - self.connection_status_surf.get_width() - 42

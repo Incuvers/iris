@@ -20,7 +20,6 @@ from monitor.models.icb import ICB
 from monitor.exceptions.mqtt import ImageTopicError
 from monitor.environment.state_manager import StateManager
 from monitor.cloud.config import MQTTConfig as conf
-from monitor.environment.context_manager import ContextManager
 from monitor.events.registry import Registry as events
 from monitor.models.imaging_profile import ImagingProfile
 from monitor.ui.static.settings import UISettings as uis
@@ -47,13 +46,14 @@ from monitor.events.registry import Registry as events
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 
+
 class MQTT():
     """
     this class is responsible for cloud operations/communications both reporting and callback notification
     from the shadow service. This object is born in the flask webserver upon starting the flask application
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, device_id:str):
         """
         :param sensors: sensorframe object
         :param clientID: client id required by mqtt
@@ -68,30 +68,21 @@ class MQTT():
         self._error_msg = ""
         # last long point type publish time
         self.last_lpt_publish = 0
-        
-        if 'device_id' in kwargs:
-            device_id = kwargs['device_id']
-        else:
-            self._logger.critical("No client ID")
-
         self.aws_tt = f"aws/things/{device_id}/telemetry/"
         self.topic_desired = f"aws/things/{device_id}/desired/"
         self.aws_ip = f"aws/things/{device_id}/new_image/"
         self.iot_endpoint = "a1h6zgnf68qmlj-ats.iot.ca-central-1.amazonaws.com"
-
         self.client = mqtt.Client(client_id=device_id)
-        self._configure_credentials(**kwargs)
-
+        self._configure_credentials()
         self._logger.info("Instantiation successful.")
 
-
-    def _configure_credentials(self, **kwargs) ->None:
-        ca_path = "./secrets/AmazonRootCA1.pem" 
+    def _configure_credentials(self) -> None:
+        ca_path = "./secrets/AmazonRootCA1.pem"
         cert_path = "./secrets/certificate.pem.crt"
         private_key_path = "./secrets/private.pem.key"
 
         try:
-            #debug print opnessl version
+            # debug print opnessl version
             ssl_context = ssl.create_default_context()
             ssl_context.set_alpn_protocols(["x-amzn-mqtt-ca"])
             ssl_context.load_verify_locations(cafile=ca_path)
@@ -121,7 +112,7 @@ class MQTT():
             except ConnectionError:
                 with StateManager() as state:
                     device = state.device
-                    device.connected = False
+                    device.mqtt_status = False
                     state.commit(device)
                 self._logger.warning("Connection to mqtt failed. Entering reconnection phase...")
                 time.sleep(conf.RECONNNECT)
@@ -129,13 +120,14 @@ class MQTT():
                 self._report_telemetry()
                 break
 
+    @tm.set_name("mqtt-con")
     def _on_connect(self, *args) -> None:
         """
         MQTT connect on callback
         """
         self._logger.info("Connected to MQTT broker")
 
-        # subscribe to mulitple topics                    
+        # subscribe to mulitple topics
         res = self.client.subscribe(self.topic_desired, 0)
         self._logger.info("subscribe results: %s", res)
         self.client.message_callback_add(self.topic_desired, self._desired_topic_resolver)
@@ -143,7 +135,7 @@ class MQTT():
         res = self.client.subscribe(self.aws_ip, 0)
         self._logger.info("subscribe results: %s", res)
         self.client.message_callback_add(self.aws_ip, self._img_topic_resolver)
-        
+
         # really gotta make sure the subscribe is finilized before attempting a jwt renew...
         self.client.loop()
 
@@ -152,10 +144,10 @@ class MQTT():
         events.new_device.trigger()
         with StateManager() as state:
             device = state.device
-            device.connected = True
+            device.mqtt_status = True
             state.commit(device)
 
-    @tm.set_name("aws-discon")
+    @tm.set_name("mqtt-discon")
     def _on_disconnect(self, *args) -> None:
         """
         MQTT disconnect callback
@@ -164,7 +156,7 @@ class MQTT():
         events.system_status.trigger(status=uis.STATUS_OK)
         with StateManager() as state:
             device = state.device
-            device.connected = False
+            device.mqtt_status = False
             state.commit(device)
 
     def _configure_connection(self):
@@ -172,24 +164,8 @@ class MQTT():
         configures the connection required to successfully communicate with the cloud services
         :raises ConnectionError: If connection is unssuccessl indicating the device is offline
         """
-
-        # self.configureAutoReconnectBackoffTime(1, 32, 20)
-        # self.configureConnectDisconnectTimeout(5)  # 5 sec
-        # self.configureMQTTOperationTimeout(5)  # 5 sec
-        # self.configureOfflinePublishQueueing(-1)
-        # self.configureDrainingFrequency(2)
-        # configure connection callbacks
-        # self.onOnline = self._on_connect
-        # self.onOffline = self._on_disconnect
-
-        # configure last will payload
-        # last_will_payload = json.dumps({'state': {'reported': {'is_online': False}}})
-        # with ContextManager() as context:
-        #     self.client.will_set(context.get_env('AWS_LWT'), last_will_payload, 0, False)
-        self.client.on_connect=self._on_connect
-
+        self.client.on_connect = self._on_connect
         self._logger.info("Successfully configured MQTT connection")
-
 
     def _generate_shadow_document(self) -> dict:
         """Construct a dictionary having the reported part of the shadow document
@@ -235,7 +211,7 @@ class MQTT():
             shadow_payload['state']['reported']['imaging_payload'] = imaging_payload
             return shadow_payload
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def _img_topic_resolver(self, client, userdata, message) -> None:
         """
         Task resolver for the imaging topic related subscriptions
@@ -253,7 +229,7 @@ class MQTT():
         elif payload.get('type') == "gfp-capture":
             events.preview_pipeline.begin(gfp=True)
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def _desired_topic_resolver(self, client, userdata, message) -> None:
         """
         Task resolver for the desired/write topic subscriptions
@@ -341,7 +317,7 @@ class MQTT():
             imaging_settings = requests["imaging_settings"]
             with StateManager() as state:
                 imaging_profile = state.imaging_profile
-                imaging_profile.setattrs(**imaging_settings)
+                imaging_profile.deserialize(**imaging_settings)
                 result = state.commit(imaging_profile)
                 # if commit fails do not report success
                 if not result:
@@ -349,17 +325,17 @@ class MQTT():
                     self._logger.warning(err_status)
                     self._error_msg += err_status
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def resolve_device_refresh(self):
         self._logger.info("Starting device refresh resolution")
         events.new_device.trigger()
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def resolve_experiment_refresh(self) -> None:
         self._logger.info("Starting experiment refresh resolution")
         events.new_experiment.trigger()
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def resolve_protocol_refresh(self) -> None:
         self._logger.info("Starting protocol refresh resolution")
         events.new_protocol.trigger()
@@ -412,7 +388,7 @@ class MQTT():
                     self._logger.debug("Published telemetry document %s", payload)
                     with StateManager() as state:
                         experiment = state.experiment
-                    if experiment.initialized and experiment.active:
+                    if experiment.active:
                         # republish old telemetry, but with exp_id
                         payload['exp_id'] = experiment.id
                         self.client.publish(self.aws_tt, json.dumps(payload), qos=0)

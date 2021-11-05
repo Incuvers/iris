@@ -35,6 +35,10 @@ dev: config ## build development stack
 clean: ## clean docker images and containers
 	@./scripts/clean.sh
 
+.PHONY: pull
+pull: ## pull new services from registry
+	@docker compose -f docker/dev/docker-compose.yaml pull
+
 .PHONY: setup
 setup: ## setup RPi dev environment from a fresh ubuntu 20.04 install
 	@printf "${OKB}Installing iris apt package dependancies ...${NC}\n";
