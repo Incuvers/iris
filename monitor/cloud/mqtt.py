@@ -53,7 +53,7 @@ class MQTT():
     from the shadow service. This object is born in the flask webserver upon starting the flask application
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, device_id:str):
         """
         :param sensors: sensorframe object
         :param clientID: client id required by mqtt
@@ -68,23 +68,15 @@ class MQTT():
         self._error_msg = ""
         # last long point type publish time
         self.last_lpt_publish = 0
-
-        if 'device_id' in kwargs:
-            device_id = kwargs['device_id']
-        else:
-            self._logger.critical("No client ID")
-
         self.aws_tt = f"aws/things/{device_id}/telemetry/"
         self.topic_desired = f"aws/things/{device_id}/desired/"
         self.aws_ip = f"aws/things/{device_id}/new_image/"
         self.iot_endpoint = "a1h6zgnf68qmlj-ats.iot.ca-central-1.amazonaws.com"
-
         self.client = mqtt.Client(client_id=device_id)
-        self._configure_credentials(**kwargs)
-
+        self._configure_credentials()
         self._logger.info("Instantiation successful.")
 
-    def _configure_credentials(self, **kwargs) -> None:
+    def _configure_credentials(self) -> None:
         ca_path = "./secrets/AmazonRootCA1.pem"
         cert_path = "./secrets/certificate.pem.crt"
         private_key_path = "./secrets/private.pem.key"

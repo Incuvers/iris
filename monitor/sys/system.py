@@ -76,7 +76,8 @@ def main():
         host = os.environ['RABBITMQ_ADDR'].split(':')[0]
         port = int(os.environ['RABBITMQ_ADDR'].split(':')[1])
         AMQPClient(host, port)
-        _mqtt = MQTT(device_id=os.environ.get('ID', None))
+        # default irrelevant here since the init checks that ID is exported
+        _mqtt = MQTT(device_id=os.environ.get('ID', ''))
         SetpointScheduler()
         ImagingScheduler()
         # load runtime models from cache into state manager
@@ -85,13 +86,11 @@ def main():
             device = state.device
             lab_id = device.lab_id
         _logger.info("Lab ID: %s", lab_id)
-        time.sleep(1)
-        events.system_status.trigger(msg="Initializing hardware link")
-        _logger.info("Done!")
+        # time.sleep(1)
+        # events.system_status.trigger(msg="Initializing hardware link")
+        # _logger.info("Done!")
         events.system_status.trigger(msg="Loading cloud resources")
-        _logger.info("Starting MQTT...")
         _mqtt.start()
-
     except BaseException as exc:
         _logger.exception(exc)
         events.system_status.trigger(

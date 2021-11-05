@@ -55,14 +55,12 @@ class TestThreadManager(unittest.TestCase):
             self.tm._monitor()
         trigger.assert_called_once_with(uis.STATUS_ALERT)
 
-    @patch.object(psutil.Process, 'nice')
     @patch.object(Thread, 'start')
-    def test_start(self, start: MagicMock, nice: MagicMock):
+    def test_start(self, start: MagicMock):
         """
         Test thread start
         """
         self.tm.start()
-        nice.assert_called_once_with(-1)
         start.assert_called_once()
 
     def test_lock(self):

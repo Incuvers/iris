@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Monitor Init
-============
-Modified: 2021-10
+Monitor __init__
+================
+Modified: 2021-11
 
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
@@ -63,7 +63,6 @@ def logging_handler(config_path: Path, base_path: str) -> None:
     else:
         logging.info("Logging configuration successful.")
 
-
 def device_certs_handler(base_path: str) -> None:
     """
     Read device certs and export as environment variables for global access. 
@@ -85,7 +84,6 @@ def device_certs_handler(base_path: str) -> None:
     config.read(base_path + '/device.ini')
     os.environ['ID'] = config.get('iris', 'id')
     logging.info("Successfully exported device certs")
-
 
 logging_handler(
     config_path=Path(__file__).parent.joinpath("logs/config/config.yml"),

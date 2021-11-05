@@ -15,7 +15,7 @@ import freezegun
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, Mock, call, patch
 
-from monitor.tests.resources import models
+from tests.resources import models
 from monitor.models.experiment import Experiment
 from monitor.scheduler.scheduler import Scheduler
 from monitor.scheduler.imaging import ImagingScheduler

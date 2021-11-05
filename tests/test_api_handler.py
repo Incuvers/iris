@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 Unittest for ApiHandler
@@ -32,7 +31,7 @@ from monitor.api.api_handler import ApiHandler
 from monitor.environment.thread_manager import ThreadManager
 from monitor.environment.state_manager import StateManager
 from monitor.models.device import Device
-from monitor.tests.resources import backend
+from tests.resources import backend
 
 
 class TestApiHandler(unittest.TestCase):
@@ -50,7 +49,7 @@ class TestApiHandler(unittest.TestCase):
 
     def setUp(self):
         logging.disable()
-        self.api_handler = ApiHandler()
+        self.api_handler = ApiHandler(base_url='localhost', base_path='/v1')
 
     def tearDown(self):
         del self.api_handler

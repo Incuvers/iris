@@ -19,12 +19,12 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
+import imp
 import math
 import time
+import sched
 import unittest
 from datetime import datetime
-import threading_sched
-import imp
 from unittest.mock import MagicMock, Mock, patch
 
 from monitor.scheduler import scheduler
@@ -59,7 +59,7 @@ class TestSchedulers(unittest.TestCase):
         """
         self.scheduler.__repr__()
 
-    @patch.object(threading_sched.scaled_scheduler, 'enterabs')
+    @patch.object(sched.scheduler, 'enterabs')
     def test_populate(self, enterabs: MagicMock):
         """
         Verify the queue is populated with the correct number of events
@@ -68,7 +68,7 @@ class TestSchedulers(unittest.TestCase):
         priority = 0
         time = math.ceil(datetime.now().timestamp())
         self.scheduler.populate(time, priority, callback, 1, string="test")
-        enterabs.assert_called_once_with(time, priority, callback, 1, string="test")
+        enterabs.assert_called_once_with(time, priority, callback, (1,), string="test")
 
     def test_purge_all(self):
         """
@@ -81,7 +81,7 @@ class TestSchedulers(unittest.TestCase):
         self.scheduler.sch.cancel.assert_called_once()
 
     @patch.object(time, 'sleep')
-    @patch.object(threading_sched.scaled_scheduler, 'run')
+    @patch.object(sched.scheduler, 'run')
     def test_schedule_runner(self, run: MagicMock, sleep: MagicMock):
         """
         Test schedule runner loop
