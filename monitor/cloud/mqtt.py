@@ -120,7 +120,7 @@ class MQTT():
             except ConnectionError:
                 with StateManager() as state:
                     device = state.device
-                    device.connected = False
+                    device.mqtt_status = False
                     state.commit(device)
                 self._logger.warning("Connection to mqtt failed. Entering reconnection phase...")
                 time.sleep(conf.RECONNNECT)
@@ -128,6 +128,7 @@ class MQTT():
                 self._report_telemetry()
                 break
 
+    @tm.set_name("mqtt-con")
     def _on_connect(self, *args) -> None:
         """
         MQTT connect on callback
@@ -151,10 +152,10 @@ class MQTT():
         events.new_device.trigger()
         with StateManager() as state:
             device = state.device
-            device.connected = True
+            device.mqtt_status = True
             state.commit(device)
 
-    @tm.set_name("aws-discon")
+    @tm.set_name("mqtt-discon")
     def _on_disconnect(self, *args) -> None:
         """
         MQTT disconnect callback
@@ -163,7 +164,7 @@ class MQTT():
         events.system_status.trigger(status=uis.STATUS_OK)
         with StateManager() as state:
             device = state.device
-            device.connected = False
+            device.mqtt_status = False
             state.commit(device)
 
     def _configure_connection(self):
@@ -218,7 +219,7 @@ class MQTT():
             shadow_payload['state']['reported']['imaging_payload'] = imaging_payload
             return shadow_payload
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def _img_topic_resolver(self, client, userdata, message) -> None:
         """
         Task resolver for the imaging topic related subscriptions
@@ -236,7 +237,7 @@ class MQTT():
         elif payload.get('type') == "gfp-capture":
             events.preview_pipeline.begin(gfp=True)
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def _desired_topic_resolver(self, client, userdata, message) -> None:
         """
         Task resolver for the desired/write topic subscriptions
@@ -324,7 +325,7 @@ class MQTT():
             imaging_settings = requests["imaging_settings"]
             with StateManager() as state:
                 imaging_profile = state.imaging_profile
-                imaging_profile.setattrs(**imaging_settings)
+                imaging_profile.deserialize(**imaging_settings)
                 result = state.commit(imaging_profile)
                 # if commit fails do not report success
                 if not result:
@@ -332,17 +333,17 @@ class MQTT():
                     self._logger.warning(err_status)
                     self._error_msg += err_status
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def resolve_device_refresh(self):
         self._logger.info("Starting device refresh resolution")
         events.new_device.trigger()
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def resolve_experiment_refresh(self) -> None:
         self._logger.info("Starting experiment refresh resolution")
         events.new_experiment.trigger()
 
-    @ tm.threaded(daemon=True)
+    @tm.threaded(daemon=True)
     def resolve_protocol_refresh(self) -> None:
         self._logger.info("Starting protocol refresh resolution")
         events.new_protocol.trigger()
@@ -395,7 +396,7 @@ class MQTT():
                     self._logger.debug("Published telemetry document %s", payload)
                     with StateManager() as state:
                         experiment = state.experiment
-                    if experiment.initialized and experiment.active:
+                    if experiment.active:
                         # republish old telemetry, but with exp_id
                         payload['exp_id'] = experiment.id
                         self.client.publish(self.aws_tt, json.dumps(payload), qos=0)
