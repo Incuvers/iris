@@ -9,7 +9,7 @@ RUN apt update && apt upgrade -y && apt install -y git sudo locales && locale-ge
 WORKDIR /app
 
 # add package dependancy indices
-COPY apt-packages.txt /app/apt-packages.txt
+COPY . .
 
 # install dependancies
 RUN DEBIAN_FRONTEND=noninteractive TZ=America/New_York \
@@ -17,7 +17,7 @@ RUN DEBIAN_FRONTEND=noninteractive TZ=America/New_York \
     -y --no-install-recommends --fix-missing
 
 # mount the repository root and install the application
-COPY . .
+RUN python3 -m pip install --upgrade -r pre-requirements.txt --ignore-installed
 RUN python3 -m pip install .
 
 ENTRYPOINT [ "./docker/prod/entry"]
