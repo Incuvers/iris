@@ -61,10 +61,10 @@ services:
     depends_on:
       - rmq
     networks:
-      - ampq 
+      - ampq
     environment:
       - RABBITMQ_ADDR=rmq:5672
-    
+
 
 networks:
   x11:

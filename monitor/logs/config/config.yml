@@ -60,7 +60,7 @@ loggers:
   pika:
     level: 'DEBUG'
     handlers: ['rmqHandler']
-    propagate: false 
+    propagate: false
   monitor.rmq:
     level: 'DEBUG'
     handlers: ['rmqHandler']

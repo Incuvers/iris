@@ -7,26 +7,20 @@ Modified: 2021-11
 Dependancies
 ------------
 ```
-from monitor.environment.state_manager import StateManager
-import time
 import os
 import logging
-from typing import Optional
 import numpy as np
-import monitor.imaging.constants as IC
-import uuid
-import socket
-import fcntl
-import struct
+
 from pathlib import Path
 from monitor.sys import kernel
 from monitor.sys import decorators
 from monitor.cloud.mqtt import MQTT
-from monitor.arduino_link.sensors import Sensors
-from monitor.arduino_link.icb_logger import ICBLogger
-from monitor.microscope.microscope import Microscope as scope
+import monitor.imaging.constants as IC
+from monitor.amqp.client import AMQPClient
+from monitor.scheduler.imaging import ImagingScheduler
 from monitor.events.registry import Registry as events
-from monitor.flash_service.flash_service import FlashService
+from monitor.scheduler.setpoint import SetpointScheduler
+from monitor.environment.state_manager import StateManager
 from monitor.ui.static.settings import UISettings as uis
 from monitor.environment.thread_manager import ThreadManager as tm
 ```
@@ -34,7 +28,6 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
-import time
 import os
 import logging
 import numpy as np
@@ -376,4 +369,3 @@ def benchmark():
     Execute all benchmarks (temp, co2, o2)
     """
     events.start_benchmark.trigger(benchmark_test_type='FULL')
-

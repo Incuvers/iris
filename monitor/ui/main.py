@@ -33,9 +33,6 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
-import os
-from monitor.environment.state_manager import PropertyCondition, StateManager
-import sys
 import logging
 import pygame  # type: ignore
 
@@ -55,6 +52,7 @@ from monitor.ui.components.device import DeviceWidget
 from monitor.ui.components.experiment import ExperimentWidget
 from monitor.ui.views.registration import Registration
 from monitor.ui.static.settings import UISettings as uis
+from monitor.environment.state_manager import PropertyCondition, StateManager
 
 
 class UserInterfaceController:
