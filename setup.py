@@ -49,6 +49,10 @@ setup(
     url='https://github.com/Incuvers/iris',
     python_requires=REQUIRES_PYTHON,
     packages=find_packages(exclude=["tests"]),
+    scripts=[
+        'bin/iris',
+        'bin/wfi'
+    ],
     include_package_data=True,
     setup_requires=['wheel'],
     install_requires=REQUIRED,
