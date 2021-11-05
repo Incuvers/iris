@@ -20,7 +20,7 @@ jobs:
         run: |
           sudo apt update
           xargs -a apt-packages.txt sudo apt install -y
-          python3 -m pip install freezegun nostests rednose
+          python3 -m pip install freezegun nosetests rednose
           python3 -m pip install --upgrade -r pre-requirements.txt --ignore-installed
           python3 -m pip install -r requirements.txt
       - name: Run unittest suite
