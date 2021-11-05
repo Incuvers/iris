@@ -73,7 +73,7 @@ class SetpointScheduler(Scheduler):
         repeats = protocol.repeats
         self._logger.debug("Repeat: %s", repeats)
         # sort setpoints by setpoint indices
-        setpoints = sorted(protocol.setpoints, key=lambda x: x['index'])
+        setpoints = sorted(protocol.setpoints, key=lambda x: x.index)
         self._logger.debug("Setpoints: %s", setpoints)
         # compute current epoch (ensure relative offset remains constant during scheduling)
         self._logger.debug("Now UTC: %s", datetime.now(timezone.utc))
@@ -86,14 +86,14 @@ class SetpointScheduler(Scheduler):
             for setpoint in setpoints:
                 self._logger.debug(
                     "Setpoint TP: %s CP: %s OP: %s | Now: %s, Delta: %s, Delta + Duration: %s",
-                    setpoint['TP'], setpoint['OP'], setpoint['CP'], now, delta, delta + setpoint['duration'])
+                    setpoint.TP, setpoint.OP, setpoint.CP, now, delta, delta + setpoint.duration)
                 # check if the setpoint is in the future or if we are in its interval
-                if delta >= now or (delta + setpoint['duration']) >= now:
+                if delta >= now or (delta + setpoint.duration) >= now:
                     # populate a setpoint event trigger for each setpoint
                     # relative time recomputes now and has slight offsets between population events
                     self.populate(delta, 1, self._trigger,
-                                  setpoint['TP'], setpoint['OP'], setpoint['CP'])
-                delta += int(setpoint['duration'])
+                                  setpoint.TP, setpoint.OP, setpoint.CP)
+                delta += int(setpoint.duration)
         self.populate(exp_end, 0, self.purge_queue)
         self._logger.debug(self)
 
