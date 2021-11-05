@@ -34,11 +34,10 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 
+from monitor.environment.state_manager import StateManager
 from monitor.sys import system
 from monitor.events.registry import Registry as events
-# from monitor.environment.state_manager import StateManager
 from monitor.environment.thread_manager import ThreadManager as tm
-# from monitor.microscope.microscope import Microscope as scope
 from monitor.ui.menu.info import InfoMenu
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.menu.pgm import events as pge
@@ -149,34 +148,34 @@ class MainMenu:
         When the menu is activated, this method gets called on every menu event-loop
         """
         # determine menu state
-        # with StateManager() as state:
-        #     experiment = state.experiment
-        # if not experiment.initialized or not experiment.active:
-        #     self.option_update.disabled = False
-        #     self.option_temp.disabled = False
-        #     self.option_co2.disabled = False
-        #     self.option_o2.disabled = False
-        #     self.option_exposure.disabled = False
-        #     if not self.overheat_protection_active:
-        #         self.option_gfp_exposure.disabled = False
-        #     else:
-        #         self.option_gfp_exposure.disabled = True
-        # else:
-        #     self.option_exposure.disabled = True
-        #     self.option_gfp_exposure.disabled = True
-        #     self.option_update.disabled = True
-        #     self.option_temp.disabled = True
-        #     self.option_co2.disabled = True
-        #     self.option_o2.disabled = True
-        # self.option_o2.label = self.O2.get_title()
-        # self.option_co2.label = self.CO2.get_title()
-        # self.option_temp.label = self.temp.get_title()
-        # self.option_fan_speed.label = self.fan.get_title()
-        # # The currently selected top menu from pygame-menu
-        # if self.main._top is None:  # NoneType guard
-        #     return
-        # top_menu = self.main._top._actual
-        # # phase exposure mode
+        with StateManager() as state:
+            experiment = state.experiment
+        if not experiment.active:
+            self.option_update.disabled = False
+            self.option_temp.disabled = False
+            self.option_co2.disabled = False
+            self.option_o2.disabled = False
+            # self.option_exposure.disabled = False
+            # if not self.overheat_protection_active:
+            #     self.option_gfp_exposure.disabled = False
+            # else:
+            #     self.option_gfp_exposure.disabled = True
+        else:
+            # self.option_exposure.disabled = True
+            # self.option_gfp_exposure.disabled = True
+            self.option_update.disabled = True
+            self.option_temp.disabled = True
+            self.option_co2.disabled = True
+            self.option_o2.disabled = True
+        self.option_o2.label = self.O2.get_title()
+        self.option_co2.label = self.CO2.get_title()
+        self.option_temp.label = self.temp.get_title()
+        self.option_fan_speed.label = self.fan.get_title()
+        # The currently selected top menu from pygame-menu
+        if self.main._top is None:  # NoneType guard
+            return
+        top_menu = self.main._top._actual
+        # phase exposure mode
         # if top_menu == self.dpc_exposure.menu:
         #     if not self.dpc_exposure.active:
         #         self.dpc_exposure.active = True
@@ -197,8 +196,8 @@ class MainMenu:
         #         # start stream asynchronously
         #         self.gfp_exposure.enable_microscope()
         #     self.gfp_exposure.draw_preview()
-        # elif top_menu == self.info.menu:
-        #     self.info._background_redraw()
+        if top_menu == self.info.menu:
+            self.info._background_redraw()
         # else:
         #     self.image_focus.active = False
         #     self.gfp_exposure.active = False
