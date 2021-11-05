@@ -229,15 +229,15 @@ class DeviceWidget(Widget):
         with StateManager() as state:
             experiment = state.experiment
             device = state.device
-        if not experiment.initialized or not experiment.active:
+        if not experiment.active:
             name = device.name
             if self.syncing:
                 self.connection_status_surf = self.icons.syncing
             else:
-                self.connection_status_surf = self.icons.online if device.connected else self.icons.offline
+                self.connection_status_surf = self.icons.online if device.mqtt_status else self.icons.offline
         else:
             name = experiment.name
-            self.connection_status_surf = self.icons.syncing if device.connected else self.icons.offline
+            self.connection_status_surf = self.icons.syncing if device.mqtt_status else self.icons.offline
         self.text_box.update_text(name)
         x_offset += self.avatar_surf.get_width() + uis.AVATAR_PADDING
         text_surf = self.text_box.redraw()

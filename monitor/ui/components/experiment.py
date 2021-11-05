@@ -144,9 +144,6 @@ class ExperimentWidget(Widget):
                                      self.height - 2 * uis.PADDING))
         with StateManager() as state:
             experiment = state.experiment
-        if not experiment.initialized:
-            self.surf.blit(self.logo_surf, ((self.width - self.logo_surf.get_width()) / 2, 15))
-            return
         delta = math.ceil(experiment.start_at.timestamp() - datetime.now().timestamp())
         # check if the experiment has a start time in the future
         if experiment.stop_at is None and not experiment.active and delta > 0:

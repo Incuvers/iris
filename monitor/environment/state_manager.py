@@ -29,12 +29,12 @@ from typing import Any, Coroutine, Dict, Generic, Tuple, Type, TypeVar, Callable
 
 from monitor.models.icb import ICB
 from monitor.models.device import Device
-from monitor.environment.cache import SystemCache
 from monitor.models.protocol import Protocol
 from monitor.models.experiment import Experiment
 from monitor.models.imaging_profile import ImagingProfile
 from monitor.environment.registry import CallbackRegistry as cr
 from monitor.environment.registry import StateRegistry as sr
+from monitor.sys.helpers import clear_thumbnail, write_lab_id, read_lab_id
 
 StateModel = Union[ICB, Experiment, Device, Protocol, ImagingProfile]
 
@@ -77,9 +77,6 @@ class PropertyCondition(Generic[_S]):
 
 class StateManager:
 
-    # system cache
-    __cache = SystemCache()
-
     def __init__(self) -> None:
         self._logger = logging.getLogger(__name__)
 
@@ -107,7 +104,7 @@ class StateManager:
         :param device: device runtime model
         :type device: Device
         """
-        sr.device.setattrs(**device.__dict__)
+        sr.device.deserialize(**device.__dict__)
 
     @property
     def imaging_profile(self) -> ImagingProfile:
@@ -127,7 +124,7 @@ class StateManager:
         :param imaging_profile: imaging profile runtime model
         :type imaging_profile: ImagingProfile
         """
-        sr.imaging_profile.setattrs(**imaging_profile.__dict__)
+        sr.imaging_profile.deserialize(**imaging_profile.__dict__)
 
     @property
     def protocol(self) -> Protocol:
@@ -147,7 +144,7 @@ class StateManager:
         :param protocol: protocol runtime model
         :type protocol: Protocol
         """
-        sr.protocol.setattrs(**protocol.__dict__)
+        sr.protocol.deserialize(**protocol.__dict__)
 
     @property
     def experiment(self) -> Experiment:
@@ -167,7 +164,7 @@ class StateManager:
         :param experiment: experiment runtime model
         :type experiment: Experiment
         """
-        sr.experiment.setattrs(**experiment.__dict__)
+        sr.experiment.deserialize(**experiment.__dict__)
 
     @property
     def icb(self) -> ICB:
@@ -194,19 +191,16 @@ class StateManager:
         Load in runtime models from cache
         """
         # read state vars from cache
-        self.protocol = self.__cache.get_protocol()
-        self.device = self.__cache.get_device()
-        self.experiment = self.__cache.get_experiment()
-        self.imaging_profile = self.__cache.get_imaging_profile()
+        self.protocol.load()
+        self.device.load()
+        self.experiment.load()
+        self.imaging_profile.load()
         # commit device cache to system
         self.commit(self.device, initial=True, cache=False)
         # conditionally commit optional states based on initialization state
-        if self.protocol.initialized:
-            self.commit(self.protocol, initial=True, cache=False)
-        if self.experiment.initialized:
-            self.commit(self.experiment, initial=True, cache=False)
-        if self.imaging_profile.initialized:
-            self.commit(self.imaging_profile, initial=True, cache=False)
+        self.commit(self.protocol, initial=True, cache=False)
+        self.commit(self.experiment, initial=True, cache=False)
+        self.commit(self.imaging_profile, initial=True, cache=False)
 
     def commit(self, state: StateModel, initial: bool = False, source: bool = False, cache: bool = True) -> bool:
         """
@@ -229,11 +223,6 @@ class StateManager:
         """
         if initial:
             self._logger.info("Initial model commit for %s", state)
-        # we cannot commit a state which is uninitialized
-        if not state.initialized:
-            self._logger.debug(
-                "Attempted state change for %s failed as the state object is not initialized.", state)
-            return False
         # filter by runtime model
         if isinstance(state, ImagingProfile):
             # await validators if state change is not from source
@@ -265,7 +254,7 @@ class StateManager:
             self._resolve_subscriptions(initial, cr.icb, cr.icb_properties, cached, state)
         elif isinstance(state, Experiment):
             # clear thumbnail for new inbound experiments
-            self.__cache.clear_thumbnail()
+            clear_thumbnail()
             # cache old model
             cached = copy.deepcopy(self.experiment)
             # await update state
@@ -286,13 +275,13 @@ class StateManager:
             # await update state
             self.device = state
             # update lab_id if delta
-            if state.lab_id != self.__cache.read_lab_id():
-                self.__cache.write_lab_id(state.lab_id)
+            if state.lab_id != read_lab_id():
+                write_lab_id(state.lab_id)
             # async update subscribers
             self._resolve_subscriptions(initial, cr.device, cr.device_properties, cached, state)
         # write all state variables to cache for all runtime
         # models (ICB exempt) if cache flag is set.
-        if cache and not isinstance(state, ICB): self.__cache.write(state)
+        if cache and not isinstance(state, ICB): state.cache()
         self._logger.info("State change commit for %s successful", state)
         return True
 
@@ -326,15 +315,6 @@ class StateManager:
                         "First commit for model %s, and callback_on_init is set.\
                         Appending %s to property subscription callbacks", cached, callback)
                     prop_callbacks.append(callback)
-                elif not cached.initialized and callback_on_init:
-                    self._logger.debug(
-                        "Current model %s, not initialized but callback_on_init is set.\
-                        Appending %s property subscription", cached, callback)
-                    prop_callbacks.append(callback)
-                elif not cached.initialized:
-                    self._logger.debug(
-                        "Current model %s, not initialized and callback_on_init is unset.\
-                        Skipping %s property subscription callback", cached, callback)
                 elif trigger(cached, state):
                     self._logger.debug(
                         "Trigger condition met.  Appending %s property subscription", callback)
