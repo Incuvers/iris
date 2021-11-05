@@ -141,7 +141,7 @@ class UserInterfaceController:
         pygame.mouse.set_visible(False)
         self._logger.debug("Mouse visibility removed")
         screen = pygame.display.set_mode(
-            flags=pygame.NOFRAME | pygame.FULLSCREEN | pygame.HWSURFACE)
+            flags=pygame.NOFRAME | pygame.FULLSCREEN | pygame.HWSURFACE) # type: ignore
         self._logger.debug("Display mode set")
         # update surface values based on screen resolution
         surface_height = screen.get_height()
