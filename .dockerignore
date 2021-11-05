@@ -1,18 +1,14 @@
 # root conf files
-.flake8
+setup.cfg
 monitor.code-workspace
 README.md
 .gitignore
 Makefile
-MANIFEST.in
-setup.py
+.yamllint
+sample.env
 
 # directory ignores
 scripts/
-docs/
+doc/
 .github/
-daemon/
-dev/
-etc/
-fbshow/
 scripts/
