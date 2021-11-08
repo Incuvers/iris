@@ -13,6 +13,19 @@ Updated: 2021-11
 ## Quickstart
 This repository is built and controlled using the Makefile in the root in order to homogenize our dev environments. Run `make help` for more information on the available make targets.
 
+### Authentication
+IRIS devices require certificate files to be mounted to `/app/instance/certs` to run successfully. The certificate files must be located [here](instance/certs/README.md) at runtime and include the following:
+- [x] amqp.ini
+- [x] device.ini
+
+>Please contact <a href="mailto:christian@incuvers.com?">christian@incuvers.com</a> for these files.
+
+### Development Stack
+Once the certs are added run the development stack:
+```bash
+make dev
+```
+
 ### Unittest and Coverage
 ```bash
 make unit
