@@ -2,6 +2,7 @@
 [![ci](https://github.com/Incuvers/iris/actions/workflows/ci.yml/badge.svg)](https://github.com/Incuvers/iris/actions/workflows/ci.yml)
 [![deploy](https://github.com/Incuvers/iris/actions/workflows/image.yml/badge.svg)](https://github.com/Incuvers/iris/actions/workflows/image.yml)
 [![codecov](https://codecov.io/gh/Incuvers/iris/branch/master/graph/badge.svg?token=NGZYAWDTKC)](https://codecov.io/gh/Incuvers/iris)
+
 ![img](/doc/img/Incuvers-black.png)
 
 Updated: 2021-11
@@ -26,6 +27,8 @@ Once the certs are added run the development stack:
 ```bash
 make dev
 ```
+
+The development stack consists of a rabbitmq broker, the iris microservice and an x11 tunnel using `novnc` to view the monitor UI visit http://localhost:8080/vnc.html and connect to the server.
 
 ### Unittest and Coverage
 ```bash
@@ -55,7 +58,7 @@ This target requires `yamllint` (all `.yaml` files), `shellcheck` (binaries loca
 
 ## Developers Guide
 Welcome to the team. Please see the [developers guide](./dev/README.md) for Incuvers guidelines and best practices.
-http://localhost:8080/vnc.html
+
 
 ## Development Team
 David Sean (CTO) (david@incuvers.com)\
