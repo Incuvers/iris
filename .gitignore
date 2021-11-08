@@ -12,50 +12,14 @@ __pycache__
 *.4
 *.5
 
-# exclude ident serial certs
-daemon/ident/serial_certs/*
-
 # exclude sphinx doc builds
 doc/build/*
 
-# include the readme's
-!daemon/ident/serial_certs/readme.md
-
-# exclude real serial_certs
-dev/SNAP_COMMON/certs/uuid.txt
-dev/SNAP_COMMON/certs/cert_arn.txt
-dev/SNAP_COMMON/certs/cert_id.txt
-dev/SNAP_COMMON/certs/certificate.pem.crt
-dev/SNAP_COMMON/certs/lab_id.txt
-dev/SNAP_COMMON/certs/private.pem.key
-dev/SNAP_COMMON/certs/public.pem.key
-dev/SNAP_COMMON/certs/id.txt
-dev/SNAP_COMMON/certs/AmazonRootCA1.pem
-dev/SNAP_COMMON/certs/device_avatar.png
-dev/SNAP_COMMON/certs/secret_access_key.txt
-dev/SNAP_COMMON/certs/access_key_id.txt
-dev/SNAP_COMMON/certs/hardware.env
-
-dev/SNAP_USER_COMMON/*
-dev/SNAP_USER_DATA/*
-
-monitor/certs/*
-
-
 # exclude generated xml  and html files from robot integration tests output
-monitor/tests/integration_tests/*.xml
-monitor/tests/integration_tests/*.html
-
-# include the readme's
-!dev/SNAP_COMMON/readme.md
-!dev/SNAP_USER_COMMON/readme.md
-!dev/SNAP_USER_DATA/readme.md
+tests/*.xml
 
 # code coverage report
 .coverage
-
-.idea/
 venv/
 .vscode/
-
 .env
