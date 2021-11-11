@@ -6,11 +6,10 @@
 	],
 	"extensions": {
 		"recommendations": [
-		  "ms-vscode.cpptools",
+		  "ms-azuretools.vscode-docker"
 		  "yzhang.markdown-all-in-one",
 		  "ms-python.python",
 		  "visualstudioexptteam.vscodeintellicode",
-		  "ms-vscode-remote.remote-ssh",
 		  "eamodio.gitlens",
 		  "ms-python.vscode-pylance",
 		  "njpwerner.autodocstring",

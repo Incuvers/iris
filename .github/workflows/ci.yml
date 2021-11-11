@@ -10,8 +10,8 @@ on:
       - master
 
 jobs:
-  unittest:
-    name: unittest suite
+  coverage:
+    name: code coverage
     runs-on: ubuntu-latest
     steps:
       - name: Check out the codebase.
@@ -20,11 +20,13 @@ jobs:
         run: |
           sudo apt update
           xargs -a apt-packages.txt sudo apt install -y
-          python3 -m pip install freezegun nose rednose
+          python3 -m pip install -r tests/requirements.txt
           python3 -m pip install --upgrade -r pre-requirements.txt --ignore-installed
           python3 -m pip install -r requirements.txt
-      - name: Run unittest suite
+      - name: Run tests and collect coverage
         run: make unit
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
   lint:
     name: lint suite
     runs-on: ubuntu-latest

@@ -65,16 +65,12 @@ loggers:
     level: 'DEBUG'
     handlers: ['rmqHandler']
     propagate: false
-  monitor.environment.cache:
-    level: 'DEBUG'
-    handlers: ['cacheHandler']
-    propagate: false
 
 handlers:
   defaultHandler:
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
-    filename: ${MONITOR_LOGS}/unregistered.log
+    filename: ${MONITOR_LOGS}/root.log
     mode: 'a'
     maxBytes: 1000000
     backupCount: 2
@@ -145,12 +141,6 @@ handlers:
     class: 'logging.handlers.RotatingFileHandler'
     formatter: default
     filename: ${MONITOR_LOGS}/scheduler.log
-    mode: 'a'
-    maxBytes: 1000000
-  cacheHandler:
-    class: 'logging.handlers.RotatingFileHandler'
-    formatter: default
-    filename: ${MONITOR_LOGS}/cache.log
     mode: 'a'
     maxBytes: 1000000
   rmqHandler:

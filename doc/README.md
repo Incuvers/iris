@@ -151,18 +151,11 @@ python3 -m daemon
 
 ## Git
 
-### VScode workspace
+### Workspaces
+This repository is optimized for use with vscode's workspaces. The `monitor.code-workspace` file in the root defines the development environment in order to homogenize and standardize all work. To get started, when opening this repository in vscode a prompt will appear in the bottom right about the code workspace. Alternatively you can open the `monitor.code-workspace` directly and click the blue 'Open Workspace' button on the bottom right  After you open the repository as a workspace your environment will be configured.
+> Please also install all the recommended extensions for the workspace.
 
-A worksapce file is provided in the repo. It should be used as close as possible, but there's nothing wrong with individuals that want personal tweaks only on their development systems. Because this file is part of the repository, it cannot be added to thje `.gitignore` file. In order to tell git to stop bugging you about uncommited changes, 
-
-``` bash
-git update-index --skip-worktree monitor.code-workspace
-```
-
-After cloning monitor:
- - Open vscode workspace using prompt or navigate to the .code-workspace file and on the bottom right corner click on the open workspace button
- - Install all recommended extensions for our repository using the prompt
- - Change your python path for your machine: "python.pythonPath": "/usr/bin/python3",
+The workspace file is source controlled and therefore should not be modified by individuals. Your local IDE settings can be tuned via `settings.json` and will extend the `.code-workspace` settings. It is also recommended that you change your python path in the bottom left corner and select your python environment for this project.
 
 
 ### Git flow
