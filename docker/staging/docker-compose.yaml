@@ -5,7 +5,7 @@ services:
     container_name: rmq
     image: rabbitmq:3.9-management
     volumes:
-      - "../rabbitmq/:/etc/rabbitmq/"
+      - "../../rabbitmq-conf/rmq/:/etc/rabbitmq/"
     ports:
       # expose for rmq web client
       - "15672:15672"
