@@ -3,9 +3,7 @@ version: "2.9"
 services:
   rmq:
     container_name: rmq
-    image: rabbitmq:3.9-management
-    volumes:
-      - "../../rabbitmq-conf/rmq/:/etc/rabbitmq/"
+    image: ghcr.io/incuvers/rabbitmq:master 
     ports:
       # expose for rmq web client
       - "15672:15672"
