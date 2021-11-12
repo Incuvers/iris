@@ -1,3 +1,0 @@
-[submodule "rabbitmq-conf"]
-	path = rabbitmq-conf
-	url = git@github.com:Incuvers/rabbitmq-conf.git
