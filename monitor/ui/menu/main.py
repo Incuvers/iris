@@ -117,6 +117,15 @@ class MainMenu:
             name='Update',
             callback=system.update_snap
         )
+
+        self.service_menu = ConfirmationMenu(
+            main=self.main,
+            surface=main_surface,
+            name='Service Menu',
+            callback=system.service_boot,
+            args=()
+        )
+
         sys_exit = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -133,6 +142,7 @@ class MainMenu:
             self.update_snap.get_title(), self.update_snap.menu)
         self.main.add_option(sys_exit.get_title(), sys_exit.menu)
         self.main.add_option('Home', pge.PYGAME_MENU_CLOSE)
+        self.main.add_option(self.service_menu.get_title(), self.service_menu.menu)
         events.fl_cooldown.register(self.overheat_protection)
         # conditional flag for enabling gfp option in main loop
         self.overheat_protection_active = False

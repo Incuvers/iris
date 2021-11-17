@@ -155,6 +155,7 @@ class ServiceMenu:
             callback=system.shutdown,
             args=()
         )
+
         self.aux_heater_option = self.main.add_option(
             self.heater.get_title(), self.heater.menu)
 
