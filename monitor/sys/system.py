@@ -110,6 +110,7 @@ def service_boot():
         else:
             _logger.info("%s", result)
         events.system_status.trigger(msg="Loading servicing assets. Please wait.")
+        events.switch_mode.trigger()
         # create a sink for SENSORFRAME_UPDATED trigger
     except BaseException as exc:
         _logger.exception(exc)

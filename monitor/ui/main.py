@@ -71,7 +71,8 @@ class UserInterfaceController:
         self.show_registration = False
         # don't allow user to click-out of loading screen
         self.load_exit = False
-        self.service = True if monitor_mode == 'service' else False
+        self.monitor_mode = monitor_mode
+        self.service = True if self.monitor_mode == 'service' else False
         self.screen, self.surface_height, self.surface_width, self.clock = self._init_pygame_menu()
         # create our canvas'
         if not self.service:
@@ -127,6 +128,7 @@ class UserInterfaceController:
         events.start_load.register(self.set_load_screen)
         events.system_reboot.register(self.set_reboot_flag)
         events.system_shutdown.register(self.set_shutdown_flag)
+        events.switch_mode.register(self.set_monitor_mode)
         self._logger.info("Instantiation successful.")
 
     def _init_pygame_menu(self) -> tuple:
@@ -255,6 +257,13 @@ class UserInterfaceController:
         """
         self.reboot_flag = True
 
+    def set_monitor_mode(self):
+        if self.monitor_mode == "monitor":
+            self.monitor_mode = "service"
+        else:
+            self.monitor_mode = "monitor"
+
+
     def service_loop(self):
         """
         init function that renders the ui and listens for event
@@ -268,6 +277,8 @@ class UserInterfaceController:
             elif self.reboot_flag:
                 self.reboot()
                 self.reboot_flag = False
+            elif self.monitor_mode == "monitor":
+                break
             # Application events
             events = pygame.event.get()
             for event in events:
@@ -301,27 +312,47 @@ class UserInterfaceController:
             elif self.reboot_flag:
                 self.reboot()
                 self.reboot_flag = False
-            # Application events
-            events = pygame.event.get()
-            for event in events:
-                if event.type == pygame.KEYDOWN:  # type: ignore
-                    if event.key in [pygame.K_RETURN, pygame.K_RIGHT, pygame.K_LEFT]:  # type: ignore
-                        self.dashboard_menu.main.enable()
-                    if event.key in [pygame.K_RETURN, pygame.K_RIGHT, pygame.K_LEFT] and self.load_exit:  # type: ignore
-                        # here we are in load exit state
-                        self.load = False
-                        # reset load exit
-                        self.load_exit = False
-            # loading screens take prescedence over all other menus
-            if self.load:
-                self.loading.redraw(self.screen)
-            elif self.show_registration:
-                self.registration.redraw(self.screen)
+            if self.monitor_mode == "service":
+                # Application events
+                events = pygame.event.get()
+                for event in events:
+                    if event.type == pygame.KEYDOWN:  # type: ignore
+                        if event.key in [pygame.K_RETURN, pygame.K_RIGHT, pygame.K_LEFT] and self.load_exit:  # type: ignore
+                            # here we are in load exit state
+                            self.load = False
+                            # reset load exit
+                            self.load_exit = False
+                # loading screens take prescedence over all other menus
+                if self.load:
+                    self.loading.redraw(self.screen)
+                else:
+                    self._service_menu.main.enable()
+                    # self.dashboard.redraw(self.screen)
+                    self._service_menu.main.mainloop(events)
+                self.clock.tick(uis.FPS)
+                pygame.display.flip()
             else:
-                self.dashboard.redraw(self.screen)
-                self.dashboard_menu.main.mainloop(events)
-            self.clock.tick(uis.FPS)
-            pygame.display.flip()
+                # Application events
+                events = pygame.event.get()
+                for event in events:
+                    if event.type == pygame.KEYDOWN:  # type: ignore
+                        if event.key in [pygame.K_RETURN, pygame.K_RIGHT, pygame.K_LEFT]:  # type: ignore
+                            self.dashboard_menu.main.enable()
+                        if event.key in [pygame.K_RETURN, pygame.K_RIGHT, pygame.K_LEFT] and self.load_exit:  # type: ignore
+                            # here we are in load exit state
+                            self.load = False
+                            # reset load exit
+                            self.load_exit = False
+                # loading screens take prescedence over all other menus
+                if self.load:
+                    self.loading.redraw(self.screen)
+                elif self.show_registration:
+                    self.registration.redraw(self.screen)
+                else:
+                    self.dashboard.redraw(self.screen)
+                    self.dashboard_menu.main.mainloop(events)
+                self.clock.tick(uis.FPS)
+                pygame.display.flip()
 
     def knob_push(self):
         """

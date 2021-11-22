@@ -116,13 +116,13 @@ base_path = os.environ.get('API_BASE_PATH', default="/v1")
 # start ui
 uic = UserInterfaceController(mode)
 
-if mode == 'service':
-    _logger.info("Entering Service Mode")
-    service_boot()
-    # load runtime models from cache into state manager
-    uic.service_loop()
-elif mode == 'monitor':
-    _logger.info("Entering Monitor Mode")
-    ApiProxy(base_url, base_path)
-    main()
-    uic.ui_loop()
+# if mode == 'service':
+#     _logger.info("Entering Service Mode")
+#     service_boot()
+#     # load runtime models from cache into state manager
+#     uic.service_loop()
+# elif mode == 'monitor':
+_logger.info("Entering Monitor Mode")
+ApiProxy(base_url, base_path)
+main()
+uic.ui_loop()
