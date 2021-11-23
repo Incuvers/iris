@@ -336,10 +336,10 @@ class UserInterfaceController:
                 # Application events
                 events = pygame.event.get()
                 for event in events:
-                    if event.type == pygame.KEYDOWN:  # type: ignore
-                        if event.key in [pygame.K_RETURN, pygame.K_RIGHT, pygame.K_LEFT]:  # type: ignore
+                    if event.type == KEYDOWN:  # type: ignore
+                        if event.key in [K_RETURN, K_RIGHT, K_LEFT]:  # type: ignore
                             self.dashboard_menu.main.enable()
-                        if event.key in [pygame.K_RETURN, pygame.K_RIGHT, pygame.K_LEFT] and self.load_exit:  # type: ignore
+                        if event.key in [K_RETURN, K_RIGHT, K_LEFT] and self.load_exit:  # type: ignore
                             # here we are in load exit state
                             self.load = False
                             # reset load exit
@@ -362,9 +362,9 @@ class UserInterfaceController:
         # deactivate registration screen on input
         if self.show_registration:
             self.show_registration = False
-        event = pygame.event.Event(pygame.KEYDOWN,  # type: ignore
+        event = pygame.event.Event(KEYDOWN,  # type: ignore
                                    unicode="e",
-                                   key=pygame.K_RETURN,  # type: ignore
+                                   key=K_RETURN,  # type: ignore
                                    mod=pygame.locals.KMOD_NONE)  # type: ignore
         pygame.event.post(event)  # add the event to the queue
 
@@ -375,9 +375,9 @@ class UserInterfaceController:
         # deactivate registration screen on input
         if self.show_registration:
             self.show_registration = False
-        event = pygame.event.Event(pygame.KEYDOWN,  # type: ignore
+        event = pygame.event.Event(KEYDOWN,  # type: ignore
                                    unicode="r",
-                                   key=pygame.K_RIGHT,  # type: ignore
+                                   key=K_RIGHT,  # type: ignore
                                    mod=pygame.locals.KMOD_NONE)   # type: ignore
         pygame.event.post(event)  # add the event to the queue
 
@@ -389,9 +389,9 @@ class UserInterfaceController:
         if self.show_registration:
             self.show_registration = False
         # create the event
-        event = pygame.event.Event(pygame.KEYDOWN,  # type: ignore
+        event = pygame.event.Event(KEYDOWN,  # type: ignore
                                    unicode="l",
-                                   key=pygame.K_LEFT,  # type: ignore
+                                   key=K_LEFT,  # type: ignore
                                    mod=pygame.locals.KMOD_NONE)  # type: ignore
         pygame.event.post(event)  # add the event to the queue
 
