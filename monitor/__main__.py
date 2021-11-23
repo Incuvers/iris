@@ -114,7 +114,7 @@ base_url = os.environ.get('API_BASE_URL', default="https://api.prod.incuvers.com
 base_path = os.environ.get('API_BASE_PATH', default="/v1")
 
 # start ui
-uic = UserInterfaceController(mode)
+uic = UserInterfaceController()
 
 # if mode == 'service':
 #     _logger.info("Entering Service Mode")

@@ -62,7 +62,7 @@ class UserInterfaceController:
     values from the sensors
     """
 
-    def __init__(self, monitor_mode: str):
+    def __init__(self):
         self._logger = logging.getLogger(__name__)
         self.shutdown_flag = False
         self.reboot_flag = False
@@ -72,8 +72,8 @@ class UserInterfaceController:
         self.show_registration = False
         # don't allow user to click-out of loading screen
         self.load_exit = False
-        self.monitor_mode = monitor_mode
-        self.service = True if self.monitor_mode == 'service' else False
+        self.mode_state = True
+        self.service = True if self.monitor_mode else False
         self.screen, self.surface_height, self.surface_width, self.clock = self._init_pygame_menu()
         # create our canvas'
         if not self.service:
@@ -129,7 +129,7 @@ class UserInterfaceController:
         events.start_load.register(self.set_load_screen)
         events.system_reboot.register(self.set_reboot_flag)
         events.system_shutdown.register(self.set_shutdown_flag)
-        events.switch_mode.register(self.set_monitor_mode)
+        events.switch_mode.register(self.set_monitor_mode(self.mode_state))
         self._logger.info("Instantiation successful.")
 
     def _init_pygame_menu(self) -> tuple:
@@ -258,45 +258,50 @@ class UserInterfaceController:
         """
         self.reboot_flag = True
 
-    def set_monitor_mode(self):
-        if self.monitor_mode == "monitor":
-            self.monitor_mode = "service"
+    def set_monitor_mode(self, mode_state: bool):
+        """
+        Set mode to be either monitor or service state
+        """
+        if mode_state:
+            #Set to monitor mode
+            self.monitor_mode = True
         else:
-            self.monitor_mode = "monitor"
+            #Set to service mode
+            self.monitor_mode = False
 
-    def service_loop(self):
-        """
-        init function that renders the ui and listens for event
-        main event loop for ui events
-        """
-        self._service_menu.main.disable()
-        while True:
-            if self.shutdown_flag:
-                self.shutdown()
-                self.shutdown_flag = False
-            elif self.reboot_flag:
-                self.reboot()
-                self.reboot_flag = False
-            elif self.monitor_mode == "monitor":
-                break
-            # Application events
-            events = pygame.event.get()
-            for event in events:
-                if event.type == KEYDOWN:  # type: ignore
-                    if event.key in [K_RETURN, K_RIGHT, K_LEFT] and self.load_exit:  # type: ignore
-                        # here we are in load exit state
-                        self.load = False
-                        # reset load exit
-                        self.load_exit = False
-            # loading screens take prescedence over all other menus
-            if self.load:
-                self.loading.redraw(self.screen)
-            else:
-                self._service_menu.main.enable()
-                # self.dashboard.redraw(self.screen)
-                self._service_menu.main.mainloop(events)
-            self.clock.tick(uis.FPS)
-            pygame.display.flip()
+    # def service_loop(self):
+    #     """
+    #     init function that renders the ui and listens for event
+    #     main event loop for ui events
+    #     """
+    #     self._service_menu.main.disable()
+    #     while True:
+    #         if self.shutdown_flag:
+    #             self.shutdown()
+    #             self.shutdown_flag = False
+    #         elif self.reboot_flag:
+    #             self.reboot()
+    #             self.reboot_flag = False
+    #         elif self.monitor_mode == "monitor":
+    #             break
+    #         # Application events
+    #         events = pygame.event.get()
+    #         for event in events:
+    #             if event.type == KEYDOWN:  # type: ignore
+    #                 if event.key in [K_RETURN, K_RIGHT, K_LEFT] and self.load_exit:  # type: ignore
+    #                     # here we are in load exit state
+    #                     self.load = False
+    #                     # reset load exit
+    #                     self.load_exit = False
+    #         # loading screens take prescedence over all other menus
+    #         if self.load:
+    #             self.loading.redraw(self.screen)
+    #         else:
+    #             self._service_menu.main.enable()
+    #             # self.dashboard.redraw(self.screen)
+    #             self._service_menu.main.mainloop(events)
+    #         self.clock.tick(uis.FPS)
+    #         pygame.display.flip()
 
     def ui_loop(self):
         """
@@ -312,7 +317,8 @@ class UserInterfaceController:
             elif self.reboot_flag:
                 self.reboot()
                 self.reboot_flag = False
-            if self.monitor_mode == "service":
+            #if mode_state is false, show service UI
+            if not self.monitor_mode:
                 # Application events
                 events = pygame.event.get()
                 for event in events:
