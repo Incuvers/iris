@@ -1,52 +1,52 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"extensions": {
-		"recommendations": [
-		  "ms-azuretools.vscode-docker"
-		  "yzhang.markdown-all-in-one",
-		  "ms-python.python",
-		  "visualstudioexptteam.vscodeintellicode",
-		  "eamodio.gitlens",
-		  "ms-python.vscode-pylance",
-		  "njpwerner.autodocstring",
-		  "kevinglasson.cornflakes-linter"
-		]
-	},
-	"settings": {
-		"python.formatting.provider": "autopep8",
-		"python.formatting.autopep8Args": [
-			"--ignore=E701",
-			"--max-line-length",
-			"100"
-		],
-		"autoDocstring.docstringFormat": "sphinx",
-		"python.analysis.typeCheckingMode": "basic",
-		"python.analysis.autoImportCompletions": true,
-		"python.linting.enabled": true,	
-		"python.linting.lintOnSave": true,
-		"[python]": {
-            "gitlens.codeLens.symbolScopes": [
-                "!Module"
-            ],
-            "editor.wordBasedSuggestions": false,
-            "editor.formatOnSave": true,
-            "editor.rulers": [100],
-	        "editor.tabSize": 4,
-            "editor.wordWrap": "on"
-        },
-        "[json]": {
-            "editor.quickSuggestions": {
-                "strings": true
-            },
-            "editor.tabSize": 4,
-            "editor.suggest.insertMode": "replace",
-            "gitlens.codeLens.scopes": [
-                "document"
-            ]
-        }
-	}
+  "folders": [
+    {
+    "path": "."
+    }
+  ],
+  "extensions": {
+    "recommendations": [
+      "ms-azuretools.vscode-docker",
+      "yzhang.markdown-all-in-one",
+      "ms-python.python",
+      "visualstudioexptteam.vscodeintellicode",
+      "eamodio.gitlens",
+      "ms-python.vscode-pylance",
+      "njpwerner.autodocstring",
+      "kevinglasson.cornflakes-linter"
+    ]
+  },
+  "settings": {
+    "python.formatting.provider": "autopep8",
+    "python.formatting.autopep8Args": [
+      "--ignore=E701",
+      "--max-line-length",
+      "100"
+    ],
+    "autoDocstring.docstringFormat": "sphinx",
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.autoImportCompletions": true,
+    "python.linting.enabled": true,	
+    "python.linting.lintOnSave": true,
+    "[python]": {
+      "gitlens.codeLens.symbolScopes": [
+        "!Module"
+      ],
+      "editor.wordBasedSuggestions": false,
+      "editor.formatOnSave": true,
+      "editor.rulers": [100],
+      "editor.tabSize": 4,
+      "editor.wordWrap": "on"
+    },
+    "[json]": {
+      "editor.quickSuggestions": {
+        "strings": true
+      },
+      "editor.tabSize": 4,
+      "editor.suggest.insertMode": "replace",
+      "gitlens.codeLens.scopes": [
+        "document"
+      ]
+    }
+  }
 }
