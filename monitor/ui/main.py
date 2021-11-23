@@ -35,7 +35,7 @@ Proprietary and confidential
 """
 import logging
 import pygame  # type: ignore
-from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT # type: ignore
+from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT  # type: ignore
 
 from monitor.sys import kernel
 from monitor.events.registry import Registry as events
@@ -144,7 +144,7 @@ class UserInterfaceController:
         pygame.mouse.set_visible(False)
         self._logger.debug("Mouse visibility removed")
         screen = pygame.display.set_mode(
-            flags=pygame.NOFRAME | pygame.FULLSCREEN | pygame.HWSURFACE) # type: ignore
+            flags=pygame.NOFRAME | pygame.FULLSCREEN | pygame.HWSURFACE)  # type: ignore
         self._logger.debug("Display mode set")
         # update surface values based on screen resolution
         surface_height = screen.get_height()
@@ -264,7 +264,6 @@ class UserInterfaceController:
         else:
             self.monitor_mode = "monitor"
 
-
     def service_loop(self):
         """
         init function that renders the ui and listens for event
@@ -319,7 +318,7 @@ class UserInterfaceController:
                 for event in events:
                     if event.type == KEYDOWN:  # type: ignore
                         # type: ignore
-                        if event.key in [K_RETURN, K_RIGHT, K_LEFT] and self.load_exit:  
+                        if event.key in [K_RETURN, K_RIGHT, K_LEFT] and self.load_exit:
                             # here we are in load exit state
                             self.load = False
                             # reset load exit
