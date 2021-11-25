@@ -130,7 +130,7 @@ class UserInterfaceController:
         events.start_load.register(self.set_load_screen)
         events.system_reboot.register(self.set_reboot_flag)
         events.system_shutdown.register(self.set_shutdown_flag)
-        events.switch_mode.register(self.set_monitor_mode, condition=lambda *argv: argv[0])
+        events.switch_mode.register(self.set_monitor_mode)
         self._logger.info("Instantiation successful.")
 
     def _init_pygame_menu(self) -> tuple:
@@ -263,12 +263,17 @@ class UserInterfaceController:
         """
         Set mode to be either monitor or service state
         """
+        
+        
         if mode_state:
             #Set to monitor mode
             self.monitor_mode = True
         else:
             #Set to service mode
+            self._service_menu = self._init_service_menu_values()
             self.monitor_mode = False
+            
+        self._logger.debug("monitor mode state switch invocated. monitor_mode: %r", self.monitor_mode)
 
     # def service_loop(self):
     #     """
@@ -320,6 +325,7 @@ class UserInterfaceController:
                 self.reboot_flag = False
             #if mode_state is false, show service UI
             if not self.monitor_mode:
+                
                 # Application events
                 events = pygame.event.get()
                 for event in events:
