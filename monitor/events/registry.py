@@ -33,7 +33,7 @@ class Registry:
     splash_load = Event[Callable[[bool], None]]('SPLASH_LOAD')
     system_reboot = Event[Callable[[], None]]('SYSTEM_REBOOT')
     system_shutdown = Event[Callable[[], None]]('SYSTEM_SHUTDOWN')
-    switch_mode = Event[Callable[[bool],None]]('MODE_SWITCH')
+    mode_switch = Event[Callable[[bool],None]]('MODE_SWITCH')
     renew_jwt = Event[Callable[[], None]]('RENEW_JWT')
     cache_thumbnail = Event[Callable[[bytes], None]]('CACHE_THUMBNAIL')
     update_progress = Event[Callable[[int], None]]('UDPATE_PROGRESS')

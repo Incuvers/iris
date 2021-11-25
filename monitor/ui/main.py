@@ -74,7 +74,7 @@ class UserInterfaceController:
         self.load_exit = False
       
         self.monitor_mode = True
-        self.service = False if self.monitor_mode else True
+        
         self.screen, self.surface_height, self.surface_width, self.clock = self._init_pygame_menu()
         # create our canvas'
         
@@ -130,7 +130,7 @@ class UserInterfaceController:
         events.start_load.register(self.set_load_screen)
         events.system_reboot.register(self.set_reboot_flag)
         events.system_shutdown.register(self.set_shutdown_flag)
-        events.switch_mode.register(self.set_monitor_mode)
+        events.mode_switch.register(self.set_monitor_mode)
         self._logger.info("Instantiation successful.")
 
     def _init_pygame_menu(self) -> tuple:
