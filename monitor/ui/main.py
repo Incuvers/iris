@@ -77,32 +77,32 @@ class UserInterfaceController:
         self.service = False if self.monitor_mode else True
         self.screen, self.surface_height, self.surface_width, self.clock = self._init_pygame_menu()
         # create our canvas'
-        if not self.service:
-            self.dashboard = Canvas(self.surface_height, self.surface_width)
-            self.registration = Canvas(self.surface_height, self.surface_width)
+        
+        self.dashboard = Canvas(self.surface_height, self.surface_width)
+        self.registration = Canvas(self.surface_height, self.surface_width)
         self.loading = Canvas(self.surface_height, self.surface_width)
         # Add widgets to dashboard canvas
-        if not self.service:
-            self.device_info = self._init_device_info_widget()
+        
+        self.device_info = self._init_device_info_widget()
         # add the info and device widget to the main canvas
-        if not self.service:
-            self.dashboard.add_info_widget(self.device_info, y_offset=0)
+        
+        self.dashboard.add_info_widget(self.device_info, y_offset=0)
         self.experiment_info = self._init_experiment_info_widget()
         # add experiment widget to the main canvas
-        if not self.service:
-            self.dashboard.add_info_widget(
-                self.experiment_info, y_offset=self.surface_height * uis.IW_HEIGHT_RATIO)
-            self.dashboard_menu = self._init_menu_values()
-        if self.service:
-            self._service_menu = self._init_service_menu_values()
+        
+        self.dashboard.add_info_widget(
+            self.experiment_info, y_offset=self.surface_height * uis.IW_HEIGHT_RATIO)
+        self.dashboard_menu = self._init_menu_values()
+        
+        self._service_menu = self._init_service_menu_values()
         # self.guage_widget_yoffset = self.device_info_widget_yoffset + self.surface_height*0.2
-        if not self.service:
-            self._gauge_temp, self._gauge_O2, self._gauge_CO2, self._gauge_RH = self._init_gauge_wigets()
-            # add gauges to main canvas (they are stored as widgets in the canvas)
-            self.dashboard.add_gauge_widget(self._gauge_temp, loc_idx=0)
-            self.dashboard.add_gauge_widget(self._gauge_O2, loc_idx=1)
-            self.dashboard.add_gauge_widget(self._gauge_CO2, loc_idx=2)
-            self.dashboard.add_gauge_widget(self._gauge_RH, loc_idx=3)
+        
+        self._gauge_temp, self._gauge_O2, self._gauge_CO2, self._gauge_RH = self._init_gauge_wigets()
+        # add gauges to main canvas (they are stored as widgets in the canvas)
+        self.dashboard.add_gauge_widget(self._gauge_temp, loc_idx=0)
+        self.dashboard.add_gauge_widget(self._gauge_O2, loc_idx=1)
+        self.dashboard.add_gauge_widget(self._gauge_CO2, loc_idx=2)
+        self.dashboard.add_gauge_widget(self._gauge_RH, loc_idx=3)
         # Add registration to registration canvas
         self.registration.add_info_widget(
             Registration('', self.surface_height, self.surface_width),
@@ -114,8 +114,8 @@ class UserInterfaceController:
             y_offset=0
         )
         # enable registration screen as part of the registration pipeline
-        if not self.service:
-            events.registration_pipeline.stage(self.enable_registration_screen, 0)
+        
+        events.registration_pipeline.stage(self.enable_registration_screen, 0)
         # disable registration screen when registration is successful
         with StateManager() as state:
             state.subscribe_property(
@@ -278,39 +278,7 @@ class UserInterfaceController:
             
         self._logger.debug("monitor mode state switch invocated. monitor_mode: %r", self.monitor_mode)
 
-    # def service_loop(self):
-    #     """
-    #     init function that renders the ui and listens for event
-    #     main event loop for ui events
-    #     """
-    #     self._service_menu.main.disable()
-    #     while True:
-    #         if self.shutdown_flag:
-    #             self.shutdown()
-    #             self.shutdown_flag = False
-    #         elif self.reboot_flag:
-    #             self.reboot()
-    #             self.reboot_flag = False
-    #         elif self.monitor_mode == "monitor":
-    #             break
-    #         # Application events
-    #         events = pygame.event.get()
-    #         for event in events:
-    #             if event.type == KEYDOWN:  # type: ignore
-    #                 if event.key in [K_RETURN, K_RIGHT, K_LEFT] and self.load_exit:  # type: ignore
-    #                     # here we are in load exit state
-    #                     self.load = False
-    #                     # reset load exit
-    #                     self.load_exit = False
-    #         # loading screens take prescedence over all other menus
-    #         if self.load:
-    #             self.loading.redraw(self.screen)
-    #         else:
-    #             self._service_menu.main.enable()
-    #             # self.dashboard.redraw(self.screen)
-    #             self._service_menu.main.mainloop(events)
-    #         self.clock.tick(uis.FPS)
-    #         pygame.display.flip()
+    
 
     def ui_loop(self):
         """
