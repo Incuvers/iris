@@ -122,6 +122,35 @@ def service_boot():
     else:
         _logger.info("Service boot successful")
 
+@tm.threaded(daemon=True)
+@decorators.load
+def main_menu_boot():
+    """
+    main boot sequence into monitor app
+    """
+    try:
+        # update system status
+        try:
+            result = kernel.os_cmd("lsusb")
+        except OSError as exc:
+            _logger.critical("os command failed with message: %s and exit status: %s",
+                             exc.strerror, exc.errno)
+        else:
+            _logger.info("%s", result)
+        events.system_status.trigger(msg="Loading main menu assets. Please wait.")
+        events.switch_mode.trigger(True)
+        _logger.debug("Triggered switch mode from monitor to service")
+        # create a sink for SENSORFRAME_UPDATED trigger
+    except BaseException as exc:
+        _logger.exception(exc)
+        events.system_status.trigger(
+            status=uis.STATUS_ALERT,
+            msg="Contact info@incuvers.com for assistance.",
+        )
+    else:
+        _logger.info("Main menu boot successful")
+
+
 
 @tm.threaded(daemon=True)
 @decorators.load

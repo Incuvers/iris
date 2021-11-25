@@ -148,6 +148,14 @@ class ServiceMenu:
             args=()
         )
 
+        self.main_menu = ConfirmationMenu(
+            main=self.main,
+            surface=main_surface,
+            name='Main Menu',
+            callback=system.main_menu_boot,
+            args=()
+        )
+
         pygame_exit = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -184,6 +192,8 @@ class ServiceMenu:
             self.update_snap.get_title(), self.update_snap.menu)
         self.menu_options_to_disable.append(self.update_snap_option)
         # don't make the exit option disabled-able!
+        #Add menu option for navigating to main menu
+        self.main.add_option(self.main_menu.get_title(), self.main_menu.menu)
         self.main.add_option(pygame_exit.get_title(), pygame_exit.menu)
 
     def disable_benchmark_options(self, benchmark_test_type):
