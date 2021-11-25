@@ -97,7 +97,7 @@ class UserInterfaceController:
         self._service_menu = self._init_service_menu_values()
         # self.guage_widget_yoffset = self.device_info_widget_yoffset + self.surface_height*0.2
         
-        self._gauge_temp, self._gauge_O2, self._gauge_CO2, self._gauge_RH = self._init_gauge_wigets()
+        self._gauge_temp, self._gauge_O2, self._gauge_CO2, self._gauge_RH = self._init_gauge_widgets()
         # add gauges to main canvas (they are stored as widgets in the canvas)
         self.dashboard.add_gauge_widget(self._gauge_temp, loc_idx=0)
         self.dashboard.add_gauge_widget(self._gauge_O2, loc_idx=1)
@@ -178,7 +178,7 @@ class UserInterfaceController:
         self._logger.info("experiment info widget initialized")
         return experiment_info
 
-    def _init_gauge_wigets(self) -> tuple:
+    def _init_gauge_widgets(self) -> tuple:
         """Initializes gauge widgets"""
         self._logger.info("initializing gauge info widget...")
         width = int(self.surface_width * uis.GW_WIDTH_RATIO)
