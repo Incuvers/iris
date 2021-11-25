@@ -263,15 +263,18 @@ class UserInterfaceController:
         """
         Set mode to be either monitor or service state
         """
-        
-        
         if mode_state:
+            # turn off menu
+            self.dashboard_menu.main.disable()
             #Set to monitor mode
             self.monitor_mode = True
         else:
             #Set to service mode
-            self._service_menu = self._init_service_menu_values()
+            # self._service_menu = self._init_service_menu_values()
+            self._service_menu.main.disable()
             self.monitor_mode = False
+            
+            
             
         self._logger.debug("monitor mode state switch invocated. monitor_mode: %r", self.monitor_mode)
 
@@ -325,7 +328,7 @@ class UserInterfaceController:
                 self.reboot_flag = False
             #if mode_state is false, show service UI
             if not self.monitor_mode:
-                
+                self._logger.debug(self.load)
                 # Application events
                 events = pygame.event.get()
                 for event in events:
