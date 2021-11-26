@@ -110,7 +110,7 @@ def service_boot():
         else:
             _logger.info("%s", result)
         events.system_status.trigger(msg="Loading servicing assets. Please wait.")
-        events.switch_mode.trigger(False)
+        events.mode_switch.trigger(False)
         _logger.debug("Triggered switch mode from monitor to service")
         # create a sink for SENSORFRAME_UPDATED trigger
     except BaseException as exc:
@@ -138,7 +138,7 @@ def main_menu_boot():
         else:
             _logger.info("%s", result)
         events.system_status.trigger(msg="Loading main menu assets. Please wait.")
-        events.switch_mode.trigger(True)
+        events.mode_switch.trigger(True)
         _logger.debug("Triggered switch mode from monitor to service")
         # create a sink for SENSORFRAME_UPDATED trigger
     except BaseException as exc:
