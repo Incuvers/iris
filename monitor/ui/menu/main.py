@@ -117,11 +117,13 @@ class MainMenu:
             name='Update',
             callback=system.update_snap
         )
-        sys_exit = ConfirmationMenu(
+
+        self.service_menu = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
-            name='Shutdown',
-            callback=system.shutdown
+            name='Service',
+            callback=events.mode_switch.trigger,
+            args=(False,)
         )
         # camera settings
         # self.option_focus = self.main.add_option('Focus', self.image_focus.menu)
@@ -131,7 +133,7 @@ class MainMenu:
         self.main.add_option(self.info.get_title(), self.info.menu)
         self.option_update = self.main.add_option(
             self.update_snap.get_title(), self.update_snap.menu)
-        self.main.add_option(sys_exit.get_title(), sys_exit.menu)
+        self.main.add_option(self.service_menu.get_title(), self.service_menu.menu)
         self.main.add_option('Home', pge.PYGAME_MENU_CLOSE)
         events.fl_cooldown.register(self.overheat_protection)
         # conditional flag for enabling gfp option in main loop

@@ -28,7 +28,7 @@ from envyaml import EnvYAML
 from configparser import ConfigParser
 from monitor.api.proxy import ApiProxy
 from monitor.logs.formatter import pformat
-from monitor.sys.system import service_boot, main
+from monitor.sys.system import main
 from monitor.environment.thread_manager import ThreadManager
 from monitor.ui.main import UserInterfaceController
 
@@ -114,15 +114,10 @@ base_url = os.environ.get('API_BASE_URL', default="https://api.prod.incuvers.com
 base_path = os.environ.get('API_BASE_PATH', default="/v1")
 
 # start ui
-uic = UserInterfaceController(mode)
+uic = UserInterfaceController()
 
-if mode == 'service':
-    _logger.info("Entering Service Mode")
-    service_boot()
-    # load runtime models from cache into state manager
-    uic.service_loop()
-elif mode == 'monitor':
-    _logger.info("Entering Monitor Mode")
-    ApiProxy(base_url, base_path)
-    main()
-    uic.ui_loop()
+
+_logger.info("Entering Monitor Mode")
+ApiProxy(base_url, base_path)
+main()
+uic.ui_loop()

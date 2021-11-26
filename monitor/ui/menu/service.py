@@ -30,6 +30,7 @@ from monitor.ui.menu.pgm import events as pge
 from monitor.ui.menu.sensors.heater import HeaterMenu
 from monitor.ui.menu.confirmation import ConfirmationMenu
 from monitor.ui.static.settings import UISettings as uis
+from monitor.events.registry import Registry as events
 
 
 class ServiceMenu:
@@ -148,6 +149,14 @@ class ServiceMenu:
             args=()
         )
 
+        self.main_menu = ConfirmationMenu(
+            main=self.main,
+            surface=main_surface,
+            name='Return',
+            callback=events.mode_switch.trigger,
+            args=(True,)
+        )
+
         pygame_exit = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -155,6 +164,7 @@ class ServiceMenu:
             callback=system.shutdown,
             args=()
         )
+
         self.aux_heater_option = self.main.add_option(
             self.heater.get_title(), self.heater.menu)
 
@@ -183,6 +193,8 @@ class ServiceMenu:
             self.update_snap.get_title(), self.update_snap.menu)
         self.menu_options_to_disable.append(self.update_snap_option)
         # don't make the exit option disabled-able!
+        # Add menu option for navigating to main menu
+        self.main.add_option(self.main_menu.get_title(), self.main_menu.menu)
         self.main.add_option(pygame_exit.get_title(), pygame_exit.menu)
 
     def disable_benchmark_options(self, benchmark_test_type):
