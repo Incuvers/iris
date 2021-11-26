@@ -28,7 +28,7 @@ from envyaml import EnvYAML
 from configparser import ConfigParser
 from monitor.api.proxy import ApiProxy
 from monitor.logs.formatter import pformat
-from monitor.sys.system import service_boot, main
+from monitor.sys.system import main
 from monitor.environment.thread_manager import ThreadManager
 from monitor.ui.main import UserInterfaceController
 
