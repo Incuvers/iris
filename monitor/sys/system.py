@@ -56,13 +56,6 @@ def main():
     """
     try:
         # update system status
-        try:
-            result = kernel.os_cmd("lsusb")
-        except OSError as exc:
-            _logger.critical("os command failed with message: %s and exit status: %s",
-                             exc.strerror, exc.errno)
-        else:
-            _logger.info("%s", result)
         events.system_status.trigger(msg="Initializing modules")
         # _mqtt = MQTT()
         # RMQ Event config
@@ -79,9 +72,6 @@ def main():
             device = state.device
             lab_id = device.lab_id
         _logger.info("Lab ID: %s", lab_id)
-        # time.sleep(1)
-        # events.system_status.trigger(msg="Initializing hardware link")
-        # _logger.info("Done!")
         events.system_status.trigger(msg="Loading cloud resources")
         _mqtt.start()
     except BaseException as exc:
@@ -92,64 +82,6 @@ def main():
         )
     else:
         _logger.info("main boot successful")
-
-
-@tm.threaded(daemon=True)
-@decorators.load
-def service_boot():
-    """
-    System boot sequence into monitor app
-    """
-    try:
-        # update system status
-        try:
-            result = kernel.os_cmd("lsusb")
-        except OSError as exc:
-            _logger.critical("os command failed with message: %s and exit status: %s",
-                             exc.strerror, exc.errno)
-        else:
-            _logger.info("%s", result)
-        events.system_status.trigger(msg="Loading servicing assets. Please wait.")
-        events.mode_switch.trigger(False)
-        _logger.debug("Triggered switch mode from monitor to service")
-        # create a sink for SENSORFRAME_UPDATED trigger
-    except BaseException as exc:
-        _logger.exception(exc)
-        events.system_status.trigger(
-            status=uis.STATUS_ALERT,
-            msg="Contact info@incuvers.com for assistance.",
-        )
-    else:
-        _logger.info("Service boot successful")
-
-@tm.threaded(daemon=True)
-@decorators.load
-def main_menu_boot():
-    """
-    main boot sequence into monitor app
-    """
-    try:
-        # update system status
-        try:
-            result = kernel.os_cmd("lsusb")
-        except OSError as exc:
-            _logger.critical("os command failed with message: %s and exit status: %s",
-                             exc.strerror, exc.errno)
-        else:
-            _logger.info("%s", result)
-        events.system_status.trigger(msg="Loading main menu assets. Please wait.")
-        events.mode_switch.trigger(True)
-        _logger.debug("Triggered switch mode from monitor to service")
-        # create a sink for SENSORFRAME_UPDATED trigger
-    except BaseException as exc:
-        _logger.exception(exc)
-        events.system_status.trigger(
-            status=uis.STATUS_ALERT,
-            msg="Contact info@incuvers.com for assistance.",
-        )
-    else:
-        _logger.info("Main menu boot successful")
-
 
 
 @tm.threaded(daemon=True)
