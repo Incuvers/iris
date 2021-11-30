@@ -37,7 +37,7 @@ clean: ## clean docker images and containers
 
 .PHONY: pull
 pull: ## pull new services from registry
-	@docker compose -f docker/dev/docker-compose.yaml pull
+	@docker-compose -f docker/dev/docker-compose.yaml pull
 
 .PHONY: setup
 setup: ## setup RPi dev environment from a fresh ubuntu 20.04 install
