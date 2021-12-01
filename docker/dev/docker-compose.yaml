@@ -47,7 +47,6 @@ services:
       - MONITOR_CACHE=/app/instance/cache
       - MONITOR_CERTS=/app/instance/certs
       - MONITOR_DPC=/app/instance/dpc
-      - MONITOR_MODE=monitor
       - MONITOR_ENV=development
       - RABBITMQ_ADDR=rmq:5672
       - API_BASE_URL=https://api.dev.incuvers.com
