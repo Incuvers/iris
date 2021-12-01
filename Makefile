@@ -28,7 +28,7 @@ config: ## send env delta to docker dev directory
 	@./scripts/config.sh
 
 .PHONY: dev
-dev: config ## build development stack
+dev: config pull ## build development stack
 	@./scripts/dev.sh
 
 .PHONY: clean
@@ -37,7 +37,7 @@ clean: ## clean docker images and containers
 
 .PHONY: pull
 pull: ## pull new services from registry
-	@docker-compose -f docker/dev/docker-compose.yaml pull
+	@./scripts/pull.sh
 
 .PHONY: setup
 setup: ## setup RPi dev environment from a fresh ubuntu 20.04 install
