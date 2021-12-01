@@ -29,7 +29,9 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 import os
+import sys
 import logging
+import pygame
 import numpy as np
 
 from pathlib import Path
@@ -59,9 +61,12 @@ def main():
         events.system_status.trigger(msg="Initializing modules")
         # _mqtt = MQTT()
         # RMQ Event config
-        host = os.environ['RABBITMQ_ADDR'].split(':')[0]
-        port = int(os.environ['RABBITMQ_ADDR'].split(':')[1])
-        AMQPClient(host, port)
+        # AMQPClient(
+        #     host=os.environ['RABBITMQ_ADDR'].split(':')[0],
+        #     port=int(os.environ['RABBITMQ_ADDR'].split(':')[1]),
+        #     username=os.environ['AMQP_USER'],
+        #     password=os.environ['AMQP_PASS']
+        # )
         # default irrelevant here since the init checks that ID is exported
         _mqtt = MQTT(device_id=os.environ.get('ID', ''))
         SetpointScheduler()
@@ -206,17 +211,6 @@ def reboot():
     """
     events.system_status.trigger(msg="Rebooting IRIS")
     events.system_reboot.trigger()
-
-
-@tm.threaded(daemon=True)
-@decorators.load
-def shutdown():
-    """
-    Shutdown the system using the dbus to workaround snap confinement
-    """
-    # send shutdown command through system dbus
-    events.system_status.trigger(msg="Shutting Down IRIS")
-    events.system_shutdown.trigger()
 
 
 @tm.threaded(daemon=True)

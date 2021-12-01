@@ -292,7 +292,6 @@ class Menu(object):
             _pygame.joystick.init()
             for i in range(_pygame.joystick.get_count()):
                 _pygame.joystick.Joystick(i).init()
-
         # Init mouse
         self._mouse = mouse_enabled
 
@@ -817,7 +816,6 @@ class Menu(object):
                 # noinspection PyUnresolvedReferences
                 if event.type == _pygame.locals.QUIT:
                     self._exit()
-
                 elif event.type == _pygame.locals.KEYDOWN:
                     if event.key == _ctrl.MENU_CTRL_DOWN:
                         self._select(self._actual._index - 1)
@@ -862,8 +860,6 @@ class Menu(object):
         if not self._enabled:
             # A widget has closed the menu
             return True
-
-        _pygame.display.flip()
         self._closelocked = False
         return False
 

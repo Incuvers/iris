@@ -4,42 +4,42 @@ disable_existing_loggers: false
 loggers:
   '':   # defines loggers that are unregistered
     level: 'DEBUG'
-    handlers: ['defaultHandler']
+    handlers: ['consoleHandler']
   monitor.environment:
     level: 'DEBUG'
-    handlers: ['environmentHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.environment.state_manager:
     level: 'DEBUG'
-    handlers: ['stateHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.events:
     level: 'DEBUG'
-    handlers: ['eventHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.cloud:
     level: 'DEBUG'
-    handlers: ['mqttHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.api:
     level: 'DEBUG'
-    handlers: ['apiHandler']
+    handlers: ['consoleHandler']
     propagate: false
   urllib3.connectionpool:
     level: 'DEBUG'
-    handlers: ['apiHandler']
+    handlers: ['consoleHandler']
     propagate: false
   retry.api:
     level: 'DEBUG'
-    handlers: ['apiHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.ui:
     level: 'DEBUG'
-    handlers: ['uiHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.sys:
     level: 'DEBUG'
-    handlers: ['systemHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.sys.benchmark:
     level: 'DEBUG'
@@ -47,23 +47,23 @@ loggers:
     propagate: false
   monitor.imaging:
     level: 'DEBUG'
-    handlers: ['imagingHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.protocol:
     level: 'DEBUG'
-    handlers: ['protocolHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.scheduler:
     level: 'DEBUG'
-    handlers: ['schedulerHandler']
+    handlers: ['consoleHandler']
     propagate: false
   pika:
     level: 'DEBUG'
-    handlers: ['rmqHandler']
+    handlers: ['consoleHandler']
     propagate: false
   monitor.rmq:
     level: 'DEBUG'
-    handlers: ['rmqHandler']
+    handlers: ['consoleHandler']
     propagate: false
 
 handlers:

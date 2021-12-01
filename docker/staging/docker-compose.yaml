@@ -7,126 +7,129 @@ networks:
   monitor:
     driver: bridge
 
-volumes:
-  prometheus_data: {}
-  grafana_data: {}
+# volumes:
+#   prometheus_data: {}
+#   grafana_data: {}
 
 services:
-  rmq:
-    container_name: rmq
-    image: ghcr.io/incuvers/rabbitmq:arm64
-    restart: unless-stopped
-    ports:
-      # expose for rmq management client
-      - "15672:15672"
-    networks:
-      - amqp
-      - monitor
-    labels:
-      org.label-schema.group: "core"
-  grafana:
-    image: ghcr.io/incuvers/grafana:arm64
-    container_name: grafana
-    restart: unless-stopped
-    volumes:
-      - grafana_data:/var/lib/grafana
-    ports:
-      - "3000:3000"
-    networks:
-      - monitor
-    labels:
-      org.label-schema.group: "monitor"
-  loki:
-    image: grafana/loki:latest
-    container_name: loki
-    restart: unless-stopped
-    networks:
-      - monitor
-    labels:
-      org.label-schema.group: "monitor"
-  node:
-    image: prom/node-exporter:v1.3.0
-    container_name: node
-    restart: unless-stopped
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
-    networks:
-      - monitor
-    labels:
-      org.label-schema.group: "monitor"
-  cadvisor:
-    image: braingamer/cadvisor-arm:latest
-    container_name: cadvisor
-    restart: unless-stopped
-    privileged: true
-    devices:
-      - /dev/kmsg:/dev/kmsg
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:ro
-      - /sys:/sys:ro
-      - /var/lib/docker:/var/lib/docker:ro
-      - /cgroup:/cgroup:ro  # Linux only
-    networks:
-      - monitor
-    labels:
-      org.label-schema.group: "monitor"
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    restart: unless-stopped
-    volumes:
-      - ../prometheus:/etc/prometheus
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yaml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=200h'
-    networks:
-      - monitor
-    labels:
-      org.label-schema.group: "monitor"
-  hwi:
-    container_name: hwi
-    image: ghcr.io/incuvers/hwi:master
-    privileged: true
-    depends_on:
-      - rmq
-    volumes:
-      - /sys:/sys
-    devices:
-      - "/dev/ttyS0:/dev/ttyS0"
-      - "/dev/ttyUSB0:/dev/ttyUSB0"
-      - "/dev/gpiomem:/dev/gpiomem"
-    networks:
-      - amqp
-      - monitor
-    environment:
-      - RABBITMQ_ADDR=rmq:5672
-      - HWI_GPIO_SERIAL=/dev/ttyS0
-      - HWI_USB_SERIAL=/dev/ttyUSB0
-      - HWI_LOGS=/app/instance/logs
-      - HWI_CERTS=/app/instance/certs
-      - LOKI_ENDPOINT="http://loki:3100/loki/api/v1/push"
-    labels:
-      org.label-schema.group: "core"
+  # rmq:
+  #   container_name: rmq
+  #   image: ghcr.io/incuvers/rabbitmq:arm64
+  #   restart: unless-stopped
+  #   ports:
+  #     # expose for rmq management client
+  #     - "15672:15672"
+  #   networks:
+  #     - amqp
+  #     - monitor
+  #   labels:
+  #     org.label-schema.group: "core"
+  # grafana:
+  #   image: ghcr.io/incuvers/grafana:arm64
+  #   container_name: grafana
+  #   restart: unless-stopped
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - monitor
+  #   labels:
+  #     org.label-schema.group: "monitor"
+  # loki:
+  #   image: grafana/loki:latest
+  #   container_name: loki
+  #   restart: unless-stopped
+  #   networks:
+  #     - monitor
+  #   labels:
+  #     org.label-schema.group: "monitor"
+  # node:
+  #   image: prom/node-exporter:v1.3.0
+  #   container_name: node
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #   command:
+  #     - '--path.procfs=/host/proc'
+  #     - '--path.rootfs=/rootfs'
+  #     - '--path.sysfs=/host/sys'
+  #     - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+  #   networks:
+  #     - monitor
+  #   labels:
+  #     org.label-schema.group: "monitor"
+  # cadvisor:
+  #   image: braingamer/cadvisor-arm:latest
+  #   container_name: cadvisor
+  #   restart: unless-stopped
+  #   privileged: true
+  #   devices:
+  #     - /dev/kmsg:/dev/kmsg
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:ro
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker:/var/lib/docker:ro
+  #     - /cgroup:/cgroup:ro  # Linux only
+  #   networks:
+  #     - monitor
+  #   labels:
+  #     org.label-schema.group: "monitor"
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ../prometheus:/etc/prometheus
+  #     - prometheus_data:/prometheus
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yaml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--storage.tsdb.retention.time=200h'
+  #   networks:
+  #     - monitor
+  #   labels:
+  #     org.label-schema.group: "monitor"
+  # hwi:
+  #   container_name: hwi
+  #   image: ghcr.io/incuvers/hwi:master
+  #   privileged: true
+  #   depends_on:
+  #     - rmq
+  #   volumes:
+  #     - /sys:/sys
+  #     - ./hwi:/hwi
+  #   devices:
+  #     - /dev/ttyS0:/dev/ttyS0
+  #     - /dev/ttyUSB0:/dev/ttyUSB0
+  #     - /dev/gpiomem:/dev/gpiomem
+  #   networks:
+  #     - amqp
+  #     - monitor
+  #   environment:
+  #     - RABBITMQ_ADDR=rmq:5672
+  #     - HWI_GPIO_SERIAL=/dev/ttyS0
+  #     - HWI_USB_SERIAL=/dev/ttyUSB0
+  #     - HWI_LOGS=/hwi
+  #     - HWI_CERTS=/hwi
+  #     - LOKI_ENDPOINT=http://loki:3100/loki/api/v1/push
+  #   labels:
+  #     org.label-schema.group: "core"
   monitor:
     container_name: monitor
-    depends_on:
-      - rmq
+    privileged: true
+    # depends_on:
+    #   - rmq
     build:
       context: ../../
       dockerfile: docker/dev/Dockerfile
     volumes:
-      - /dev:/dev
       - ../../:/app
+    devices:
+      - /dev/fb0:/dev/fb0
     networks:
       - amqp
       - monitor
@@ -145,5 +148,6 @@ services:
       - RABBITMQ_ADDR=rmq:5672
       - API_BASE_URL=https://api.dev.incuvers.com
       - API_BASE_PATH=/v1
+      - PYGAME_HIDE_SUPPORT_PROMPT=1
     labels:
       org.label-schema.group: "core"

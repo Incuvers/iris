@@ -58,7 +58,7 @@ def logging_handler(config_path: Path, base_path: str) -> None:
         # load config from .yaml
         env = EnvYAML(config_path).export()
         logging.info("Parsed logger config:%s", pformat(env))
-        logging.config.dictConfig(env) # type: ignore
+        logging.config.dictConfig(env)  # type: ignore
         logging.info('Configuring logger using dict config')
     except ValueError as exc:
         logging.exception(
@@ -68,6 +68,7 @@ def logging_handler(config_path: Path, base_path: str) -> None:
             "Logging config file not found in expected absolute path: {}".format(config_path))
     else:
         logging.info("Logging configuration successful.")
+
 
 def device_certs_handler(base_path: str) -> None:
     """
@@ -91,6 +92,7 @@ def device_certs_handler(base_path: str) -> None:
     os.environ['ID'] = config.get('iris', 'id')
     logging.info("Successfully exported device certs")
 
+
 logging_handler(
     config_path=Path(__file__).parent.joinpath("logs/config/config.yml"),
     base_path=os.environ.get("MONITOR_LOGS", str(Path(__file__).parent.joinpath('logs/')))
@@ -108,16 +110,11 @@ _logger = logging.getLogger(__name__)
 ThreadManager().start()
 
 # get environment variables
-mode = os.environ.get('MONITOR_MODE', default="monitor")
-_logger.info("Monitor mode: %s", mode)
 base_url = os.environ.get('API_BASE_URL', default="https://api.prod.incuvers.com")
 base_path = os.environ.get('API_BASE_PATH', default="/v1")
 
 # start ui
 uic = UserInterfaceController()
-
-
-_logger.info("Entering Monitor Mode")
 ApiProxy(base_url, base_path)
 main()
 uic.ui_loop()

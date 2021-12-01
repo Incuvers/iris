@@ -4,3 +4,4 @@ class AMQPConf:
     class Routes:
         TELEMETRY = 'telemetry'
         COMMAND = 'command'
+        ISR = 'isr'
