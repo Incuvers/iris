@@ -66,9 +66,9 @@ class TextBox(Widget):
         font = pygame.font.Font(self.font_path, self.font_size)
         if self.no_line_breaks:
             line = self._get_wrapped_lines()[0]
-            surf.append(font.render(line, True, self.color, uis.WIDGET_BACKGROUND))
+            surf.append(font.render(line, True, self.color))
         else:
             for line in self._get_wrapped_lines():
                 surf.append(
-                    font.render(line, True, self.color, uis.WIDGET_BACKGROUND))
+                    font.render(line, True, self.color))
         return surf
