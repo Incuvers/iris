@@ -254,13 +254,11 @@ class UserInterfaceController:
                         self.dashboard_menu.main.enable()
             if self._service_menu.main.is_enabled():
                 self._service_menu.main.mainloop(events)
-                self._logger.info("{} : service mainloop".format(time.time()))
             elif self.dashboard_menu.main.is_enabled():
                 self.dashboard_menu.main.mainloop(events)
-                self._logger.info("{} : dash mainloop".format(time.time()))
             else:
                 self.dashboard.redraw(self.screen)
-                self._logger.info("{} : dash redraw".format(time.time()))
+            pygame.display.flip()
             self.clock.tick(uis.FPS)
 
     def _kret(self) -> None:
