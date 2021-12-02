@@ -36,14 +36,15 @@ class Gauge(Widget):
     VALUE = '...'
 
     def __init__(self, name: str, width: int, height: int):
+        super().__init__(width, height)
         self._logger = logging.getLogger(__name__)
         self.title_string = name
-        self.width = width
-        self.height = height
-        self._logger.info("%s gauge width: %s height: %s", name, width, height)
+        self._logger.info("%s gauge width: %s height: %s", name, self.width, self.height)
+        self.circle_cx = self.width // 2
+        self.circle_cy = self.height // 2 - uis.GAUGE_TEXT_PADDING
         self.circ_radius = int(self.width // 2 * .8)  # get as percent of width
         self.gauge_loader = LoadingWheel(
-            centering=(self.width // 2, self.height - self.circ_radius - uis.GAUGE_TEXT_PADDING),
+            centering=(self.circle_cx, self.circle_cy),
             scaling=(50, 50),
             timeout=15,
             low_res=False
@@ -56,8 +57,6 @@ class Gauge(Widget):
         )
         self.load_state: bool = False
         self.load_set: bool = False
-        self.surf = pygame.Surface((self.width, self.height))  # type:ignore
-        self.font_path = uis.FONT_PATH
         self.redraw()
 
     def _circle(self, surf, color, x, y, radius):
@@ -85,24 +84,20 @@ class Gauge(Widget):
             circle_color = uis.INCUVERS_BLUE
             title_text_color = uis.INCUVERS_WHITE
             gauge_text_color = uis.INCUVERS_BLUE
-
-        self.surf.fill(uis.WIDGET_EDGE)
         pygame.draw.rect(self.surf,
                          uis.WIDGET_BACKGROUND,
-                         pygame.Rect(uis.PADDING,
-                                     uis.PADDING,
-                                     self.width - 2 * uis.PADDING,
-                                     self.height - 2 * uis.PADDING))
-        x = self.width // 2
-        y = self.height - self.circ_radius - uis.GAUGE_TEXT_PADDING
-        self._circle(self.surf, circle_color, x, y,
+                         pygame.Rect(0,
+                                     0,
+                                     self.width,
+                                     self.height))
+
+        self._circle(self.surf, circle_color, self.circle_cx, self.circle_cy,
                      self.circ_radius)
-        self._circle(self.surf, uis.INCUVERS_DARK_GREY, x, y,
+        self._circle(self.surf, uis.INCUVERS_GREY, self.circle_cx, self.circle_cy,
                      self.circ_radius - 10)
-        self._circle(self.surf, uis.INCUVERS_LIGHT_GREY, x, y,
+        self._circle(self.surf, uis.INCUVERS_LIGHT_GREY, self.circle_cx, self.circle_cy,
                      self.circ_radius - 20)
         font_size = 35
-        y_offset = uis.GAUGE_TEXT_PADDING
         # display the setpoint depending on the loading state
         if setpoint is None or self.load_state:
             self.setpoint_loader.stop()
@@ -117,7 +112,7 @@ class Gauge(Widget):
             self.gauge_loader.stop()
             self.setpoint_loader.stop()
             sp_str = 'Set: {}'.format(setpoint)
-        self._render_text(self.title_string, y_offset, font_size, title_text_color)
+        self._render_text(self.title_string, self.height - 80, font_size, title_text_color)
         font_size = 45
         y_offset = self.height - (self.circ_radius + uis.GAUGE_TEXT_PADDING) - font_size
         if value is not None:
