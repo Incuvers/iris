@@ -88,7 +88,6 @@ class Menu(object):
                  title_offsetx=0,
                  title_offsety=0,
                  widget_alignment=_locals.PYGAME_ALIGN_CENTER,
-                 event_handler=None
                  ):
         """
         Menu constructor.
@@ -190,11 +189,6 @@ class Menu(object):
         assert isinstance(option_shadow_offset, int)
         assert isinstance(option_shadow_position, str)
         assert isinstance(rect_width, int)
-
-        if event_handler is not None:
-            self.event_handler = event_handler
-            self.event_handler.register('SNAP_STOP', self.teardown)
-
         # Other asserts
         if dopause:
             assert callable(bgfun), \
