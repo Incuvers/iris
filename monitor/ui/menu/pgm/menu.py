@@ -88,6 +88,7 @@ class Menu(object):
                  title_offsetx=0,
                  title_offsety=0,
                  widget_alignment=_locals.PYGAME_ALIGN_CENTER,
+                 event_handler=None
                  ):
         """
         Menu constructor.
@@ -189,6 +190,11 @@ class Menu(object):
         assert isinstance(option_shadow_offset, int)
         assert isinstance(option_shadow_position, str)
         assert isinstance(rect_width, int)
+
+        if event_handler is not None:
+            self.event_handler = event_handler
+            self.event_handler.register('SNAP_STOP', self.teardown)
+
         # Other asserts
         if dopause:
             assert callable(bgfun), \
@@ -286,12 +292,11 @@ class Menu(object):
             _pygame.joystick.init()
             for i in range(_pygame.joystick.get_count()):
                 _pygame.joystick.Joystick(i).init()
+
         # Init mouse
         self._mouse = mouse_enabled
 
-    def add_option(self, element_name: str,
-                   element: Union['Menu', _events._PymenuAction, Callable],
-                   *args, **kwargs) -> button_disable.ButtonDisable:
+    def add_option(self, element_name: str, element: Union['Menu', _events._PymenuAction, Callable], *args, **kwargs):
         """
         Add option (button) to menu.
 
@@ -810,6 +815,7 @@ class Menu(object):
                 # noinspection PyUnresolvedReferences
                 if event.type == _pygame.locals.QUIT:
                     self._exit()
+
                 elif event.type == _pygame.locals.KEYDOWN:
                     if event.key == _ctrl.MENU_CTRL_DOWN:
                         self._select(self._actual._index - 1)
@@ -854,6 +860,8 @@ class Menu(object):
         if not self._enabled:
             # A widget has closed the menu
             return True
+
+        _pygame.display.flip()
         self._closelocked = False
         return False
 

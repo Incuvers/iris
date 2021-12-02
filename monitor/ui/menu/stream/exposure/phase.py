@@ -36,7 +36,7 @@ from monitor.models.imaging_profile import ImagingProfile
 from monitor.exceptions.microscope import MicroscopeError
 from monitor.environment.thread_manager import ThreadManager as tm
 from monitor.events.registry import Registry as events
-from monitor.environment.state_manager import PropertyCondition, StateManager
+from monitor.environment.state_manager import StateManager
 from monitor.ui.static.settings import UISettings as uis
 from monitor.ui.menu.stream.exposure.exposure import ExposureMenu
 
@@ -47,21 +47,8 @@ class PhaseExposureMenu(ExposureMenu):
         self._logger = logging.getLogger(__name__)
         super().__init__(main, surface, channel, min_exposure=min_exposure, max_exposure=max_exposure)
         with StateManager() as state:
-            state.subscribe_property(
-                _type=ImagingProfile,
-                _property=PropertyCondition[ImagingProfile](
-                    trigger=lambda old_ip, new_ip: old_ip.dpc_exposure != new_ip.dpc_exposure,
-                    callback=self.update_profile,
-                    callback_on_init=True
-                )
-            )
-            state.subscribe_property(
-                _type=Experiment,
-                _property=PropertyCondition[Experiment](
-                    trigger=lambda old_exp, new_exp: old_exp.id != new_exp.id,
-                    callback=self._cancel
-                )
-            )
+            state.subscribe(ImagingProfile, self.update_profile)
+            state.subscribe(Experiment, self._cancel)
 
     async def update_profile(self, imaging_profile: ImagingProfile) -> None:
         self.current_exposure_grade = IC.dpc_exposure_to_grade(imaging_profile.dpc_exposure)

@@ -27,7 +27,7 @@ Proprietary and confidential
 import logging
 
 from monitor.models.experiment import Experiment
-from monitor.environment.state_manager import PropertyCondition, StateManager
+from monitor.environment.state_manager import StateManager
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.microscope.camera.stream_pipeline import StreamPipeline
 from monitor.microscope.microscope import Microscope as scope
@@ -41,13 +41,7 @@ class FocusMenu:
     def __init__(self, main, surface, channel: StreamPipeline):
         self._logger = logging.getLogger(__name__)
         with StateManager() as state:
-            state.subscribe_property(
-                _type=Experiment,
-                _property=PropertyCondition[Experiment](
-                    trigger=lambda old_exp, new_exp: old_exp.id != new_exp.id,
-                    callback=self._cancel
-                )
-            )
+            state.subscribe(Experiment, self._cancel)
         self.acquisition = False
         self.main = main
         self.main_surface = surface
@@ -99,7 +93,7 @@ class FocusMenu:
         if self.active:
             scope.focus_stream_ctrl(flag=False)
             self._logger.warning(
-                "Kicked out of the focus menu as an experiment: %s is iminent", experiment)
+                "Kicked out of the focus menu as an experiment %s is iminent", experiment.id)
             self.menu.reset(1)
 
     def _bgfun(self):

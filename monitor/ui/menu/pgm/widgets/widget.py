@@ -30,7 +30,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 -------------------------------------------------------------------------------
 """
 
-import pygame as _pygame  # type: ignore
+import pygame as _pygame
 from monitor.ui.menu.pgm import config_menu as _cfg
 from monitor.ui.menu.pgm import locals as _locals
 from monitor.ui.menu.pgm import fonts as _fonts
