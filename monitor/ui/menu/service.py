@@ -24,8 +24,7 @@ Proprietary and confidential
 
 import logging
 import pygame
-from pygame import QUIT
-from monitor.sys import system
+from pygame import QUIT  # type: ignore
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.menu.pgm import events as pge
 from monitor.ui.menu.confirmation import ConfirmationMenu
@@ -59,7 +58,7 @@ class ServiceMenu:
             onclose=pge.PYGAME_MENU_CLOSE,
             option_shadow=False,
             rect_width=4,
-            title='Service Menu',
+            title='Services',
             title_offsety=5,
             window_height=uis.HEIGHT,
             window_width=uis.WIDTH,
