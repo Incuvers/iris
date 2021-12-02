@@ -59,13 +59,12 @@ class ProgressBar(Widget):
         self.percent_complete = percent_complete
 
     def redraw(self):
-        self.surf.fill(uis.WIDGET_EDGE)
         pygame.draw.rect(self.surf,
                          uis.WIDGET_BACKGROUND,
-                         pygame.Rect(uis.PADDING,
-                                     uis.PADDING,
-                                     self.width - 2 * uis.PADDING,
-                                     self.height - 2 * uis.PADDING))
+                         pygame.Rect(0,
+                                     0,
+                                     self.width,
+                                     self.height))
 
         font_size = 15
         font = pygame.font.Font(self.font_path, font_size)
@@ -75,14 +74,14 @@ class ProgressBar(Widget):
                                 uis.WIDGET_BACKGROUND)
         self.surf.blit(text_surf, (self._x_center(text_surf), self._y_center(text_surf)))
         bar_surf = self._custom_bar()
-        self.surf.blit(bar_surf, (uis.PADDING, uis.PADDING))
+        self.surf.blit(bar_surf, (0, 0))
 
     def _custom_bar(self):
         """
         Draw progress bar with color map transformation.
         returns: (surface)
         """
-        width = int((self.width - 2 * uis.PADDING)
+        width = int((self.width)
                     * self.percent_complete * 0.01) + 1
         back_arr = pygame.surfarray.array3d(self.surf)
         back_arr = back_arr[1:width, 1:-1]
