@@ -9,7 +9,8 @@ class UISettings:
     """
     # branding color names
     INCUVERS_BLACK = (0, 0, 0)
-    INCUVERS_DARK_GREY = (51, 51, 51)
+    INCUVERS_DARK_GREY = (35, 35, 35)
+    INCUVERS_GREY = (51, 51, 51)
     INCUVERS_LIGHT_GREY = (66, 66, 66)
     INCUVERS_BLUE = (0, 193, 243)
     INCUVERS_WHITE = (255, 255, 255)
@@ -20,34 +21,31 @@ class UISettings:
     # color roles
     DISABLED_OBJ = (160, 160, 160)
     DISABLED_TEXT = (100, 100, 100)
-    MENU_COLOR = INCUVERS_DARK_GREY  # incuvers dark grey
+    MENU_COLOR = INCUVERS_GREY  # incuvers dark grey
     MENU_COLOR_TITLE = INCUVERS_BLUE  # incuvers blue
     COLOR_SELECTED = INCUVERS_BLUE  # incuvers blue
     COLOR_ALARM = INCUVERS_ORANGE
 
-    WIDGET_EDGE = INCUVERS_BLACK  # border around widgets
-    WIDGET_BACKGROUND = INCUVERS_DARK_GREY  # just the background
+    WIDGET_BACKGROUND = INCUVERS_GREY  # just the background
     PROGRESS_BAR_FILL = INCUVERS_BLUE  # the inside of the progress bar
     TEXT_COLOR = INCUVERS_WHITE  # regular textbox text
     LINK_COLOR = INCUVERS_BLUE  # for links
-
+    HEIGHT = 1024
+    WIDTH = 576
     # Sizing ratios
-    IW_HEIGHT_RATIO = 0.125  # for 100 px @ 1024
-    EW_HEIGHT_RATIO = 0.1758  # for 180 px @ 1024
-    GW_HEIGHT_RATIO = 0.36328125  # for 372 px @ 1024
-    GW_WIDTH_RATIO = 0.5
-
+    DEVICE_WIDGET_HEIGHT = 128
+    DEVICE_WIDGET_WIDTH = WIDTH
+    EXPERIMENT_WIDGET_HEIGHT = 180
+    EXPERIMENT_WIDGET_WIDTH = WIDTH
+    GAUGE_WIDGET_HEIGHT = 358
+    GAUGE_WIDGET_WIDTH = 288
     # loading wheel parameters
     LOAD_CENTER = (170, 262)
     LOAD_SIZE = (23, 23)
     REFRESH_ANGLE = 10
-
-    HEIGHT = 1024
-    WIDTH = 600
     AVATAR_PADDING = 20
     GAUGE_TEXT_PADDING = 35
-    PADDING = 1  # padded frame (or edge) around every widget, x2 between them
-    FPS = 60  # frames per second
+    FPS = 60  # refresh rate
 
     FONT_PATH = "{}/fonts/DroidSansFallback.ttf".format(Path(__file__).parent)
 
