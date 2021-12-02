@@ -78,7 +78,7 @@ class StreamPreview(Widget):
         """
         pygame.draw.rect(
             self.surf,
-            uis.WIDGET_EDGE,
+            uis.INCUVERS_BLACK,
             pygame.Rect(0, 0, self.width, self.height)
         )
         self.load_icon.start()
