@@ -47,7 +47,7 @@ class Registration(Widget):
         )
         self.instructions_box_height = 200
         self.instructions_box = TextBox(
-            self.width - 2 * uis.PADDING,
+            self.width,
             self.instructions_box_height,
             text="Register using the link and key provided below:",
             fs_min=10,
@@ -57,7 +57,7 @@ class Registration(Widget):
         self.url_box_height = 60
         self.url_box = TextBox(
             height=self.url_box_height,
-            width=self.width - 2 * uis.PADDING,
+            width=self.width,
             text="lab.incuvers.com",
             fs_min=10,
             fs_max=50,
@@ -66,7 +66,7 @@ class Registration(Widget):
         )
         self.registration_height = 200
         self.registration = TextBox(
-            width=self.width - 2 * uis.PADDING,
+            width=self.width,
             height=self.registration_height,
             text=self.registration_key,
             fs_min=10,
@@ -79,7 +79,7 @@ class Registration(Widget):
         )
         self.load_icon.start()
 
-        self.surf = pygame.Surface((self.width, self.height)) # type: ignore
+        self.surf = pygame.Surface((self.width, self.height))  # type: ignore
         self.font_path = uis.FONT_PATH
         self.redraw()
 
@@ -89,13 +89,12 @@ class Registration(Widget):
         self.load_icon.stop()
 
     def redraw(self):
-        self.surf.fill(uis.WIDGET_EDGE)
         pygame.draw.rect(self.surf,
                          uis.WIDGET_BACKGROUND,
-                         pygame.Rect(uis.PADDING,
-                                     uis.PADDING,
-                                     self.width - 2 * uis.PADDING,
-                                     self.height - 2 * uis.PADDING))
+                         pygame.Rect(0,
+                                     0,
+                                     self.width,
+                                     self.height))
         # compute y offsets
         y_offset = 125
         # render instructions

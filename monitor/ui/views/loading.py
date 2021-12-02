@@ -43,14 +43,14 @@ class Loading(Widget):
         self.system_status_surf = pygame.image.load(uis.STATUS_OK).convert_alpha()
         self.status_textbox_height = 100
         self.status_textbox = TextBox(
-            width=self.width - 2 * uis.PADDING,
+            width=self.width,
             height=self.status_textbox_height,
             text='',
             fs_min=5,
             fs_max=30,
             justify="center"
         )
-        self.surf = pygame.Surface((self.width, self.height)) # type: ignore
+        self.surf = pygame.Surface((self.width, self.height))  # type: ignore
         self.load_icon = LoadingWheel(
             centering=(300, 500),
             scaling=(50, 50)
@@ -76,7 +76,7 @@ class Loading(Widget):
         events.system_status.register(self.set_message, condition=lambda *argv,
                                       **kwargs: False if kwargs.get('msg') is None else True)
         events.start_load.register(self.reset_state,
-            condition=lambda *argv: argv[0])
+                                   condition=lambda *argv: argv[0])
         events.update_progress.register(
             self.set_pv, condition=lambda *argv: True if argv[0] == 0 else False)
         events.new_benchmark_img.register(self.set_benchmark_image)
@@ -117,15 +117,14 @@ class Loading(Widget):
         self.redraw()
 
     def redraw(self):
-        self.surf.fill(uis.WIDGET_EDGE)
         pygame.draw.rect(
             self.surf,
             uis.WIDGET_BACKGROUND,
             pygame.Rect(
-                uis.PADDING,
-                uis.PADDING,
-                self.width - 2 * uis.PADDING,
-                self.height - 2 * uis.PADDING
+                0,
+                0,
+                self.width,
+                self.height
             )
         )
 
