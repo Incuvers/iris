@@ -45,19 +45,10 @@ from monitor.ui.static.settings import UISettings as uis
 
 class ExperimentWidget(Widget):
 
-    """
-    Info widget for showing experiment details
-    """
-
-    def __init__(self, surface_height: int, surface_width: int):
-        """
-        init
-        """
+    def __init__(self, width: int, height: int):
         self._logger = logging.getLogger(__name__)
-        self.width = surface_width
-        self.height = int(uis.EW_HEIGHT_RATIO * surface_height)
+        super().__init__(width, height)
         self._logger.debug("Experiment Widget width: %s, height: %s", self.width, self.height)
-        self.surf = pygame.Surface((self.width, self.height))  # type: ignore
         self.progress_bar = ProgressBar(self.width, 25, text="Experiment Progress: ")
         self.preview = None
         scaling = 0.25
@@ -67,29 +58,29 @@ class ExperimentWidget(Widget):
             (int(scaling * self.logo_surf.get_width()), int(scaling * self.logo_surf.get_height()))
         )
         self.elapsed = TextBox(
-            width=self.width - 2 * uis.PADDING,
-            height=self.height - 2 * uis.PADDING,
+            width=self.width,
+            height=self.height,
             text='',
             fs_min=10,
             fs_max=30
         )
         self.capture = TextBox(
-            width=self.width - 2 * uis.PADDING,
-            height=self.height - 2 * uis.PADDING,
+            width=self.width,
+            height=self.height,
             text='',
             fs_min=10,
             fs_max=30
         )
         self.queued = TextBox(
-            width=self.width - 2 * uis.PADDING,
-            height=self.height - 2 * uis.PADDING,
+            width=self.width,
+            height=self.height,
             text='',
             fs_min=10,
             fs_max=30
         )
         self.countdown = TextBox(
-            width=self.width - 2 * uis.PADDING,
-            height=self.height - 2 * uis.PADDING,
+            width=self.width,
+            height=self.height,
             text='',
             fs_min=10,
             fs_max=50,
@@ -104,7 +95,6 @@ class ExperimentWidget(Widget):
             centering=(self.width // 2, self.height // 2 - 15),
             scaling=(50, 50)
         )
-        self.font_path = uis.FONT_PATH
         self.thumbnail_path = os.environ.get('COMMON', default='/etc/iris') + '/thumbnail.png'
         # always render thumbnail if it exists
         if Path(self.thumbnail_path).exists():
@@ -135,13 +125,12 @@ class ExperimentWidget(Widget):
             self.image_loader.stop()
 
     def redraw(self):
-        self.surf.fill(uis.WIDGET_EDGE)
         pygame.draw.rect(self.surf,
                          uis.WIDGET_BACKGROUND,
-                         pygame.Rect(uis.PADDING,
-                                     uis.PADDING,
-                                     self.width - 2 * uis.PADDING,
-                                     self.height - 2 * uis.PADDING))
+                         pygame.Rect(0,
+                                     0,
+                                     self.width,
+                                     self.height))
         with StateManager() as state:
             experiment = state.experiment
         delta = math.ceil(experiment.start_at.timestamp() - datetime.now().timestamp())
@@ -196,7 +185,7 @@ class ExperimentWidget(Widget):
             if self.preview is None:
                 pygame.draw.rect(
                     self.surf,
-                    uis.WIDGET_EDGE,
+                    uis.INCUVERS_BLACK,
                     pygame.Rect(
                         self.width // 2,
                         25,
@@ -223,4 +212,4 @@ class ExperimentWidget(Widget):
                 self.surf.blit(load_wheel[0], load_wheel[1])
         # if not experiment.is_active
         else:
-            self.surf.blit(self.logo_surf, ((self.width - self.logo_surf.get_width()) / 2, 15))
+            self.surf.blit(self.logo_surf, ((self.width - self.logo_surf.get_width()) / 2, 30))
