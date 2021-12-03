@@ -117,7 +117,3 @@ class MainMenu:
         self.option_co2.label = self.CO2.get_title()
         self.option_temp.label = self.temp.get_title()
         self.option_fan_speed.label = self.fan.get_title()
-        # The currently selected top menu from pygame-menu
-        if self.main._top is None:  # NoneType guard
-            return
-        top_menu = self.main._top._actual
