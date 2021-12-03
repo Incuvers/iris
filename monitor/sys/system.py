@@ -35,6 +35,7 @@ import pygame
 import socket
 import fcntl
 import uuid
+import struct
 import numpy as np
 
 from typing import Optional
@@ -330,6 +331,13 @@ def benchmark():
     Execute all benchmarks (temp, co2, o2)
     """
     events.start_benchmark.trigger(benchmark_test_type='FULL')
+
+
+def shutdown():
+    pygame.display.quit()
+    pygame.font.quit()
+    pygame.quit()  # type: ignore
+    sys.exit(0)
 
 
 def test_connection(host: str = "8.8.8.8", port: int = 53, timeout: int = 3):
