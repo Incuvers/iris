@@ -34,15 +34,10 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 
-import time
-
-from monitor.sys import system
 from monitor.models.experiment import Experiment
 from monitor.events.registry import Registry as events
 from monitor.environment.state_manager import StateManager
 from monitor.environment.thread_manager import ThreadManager as tm
-from monitor.microscope.microscope import Microscope as scope
-from monitor.microscope.fluorescence.hardware import FluorescenceHardware
 from monitor.ui.menu.info import InfoMenu
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.menu.pgm import events as pge
@@ -51,10 +46,6 @@ from monitor.ui.menu.sensors.co2 import CO2Menu
 from monitor.ui.menu.sensors.fan import FanMenu
 from monitor.ui.menu.sensors.temp import TempMenu
 from monitor.ui.static.settings import UISettings as uis
-from monitor.ui.menu.confirmation import ConfirmationMenu
-from monitor.ui.menu.stream.focus import FocusMenu
-from monitor.ui.menu.stream.exposure.phase import PhaseExposureMenu
-from monitor.ui.menu.stream.exposure.gfp import GFPExposureMenu
 
 
 class MainMenu:
@@ -98,55 +89,9 @@ class MainMenu:
         self.option_o2 = self.main.add_option(self.O2.menu.get_title(), self.O2.menu)
         self.option_fan_speed = self.main.add_option(self.fan.menu.get_title(), self.fan.menu)
         info = InfoMenu(self.main, main_surface, name='System Info', update_func=lambda _: None)
-        # Imaging
-        self.dpc_exposure = PhaseExposureMenu(
-            main=self.main,
-            surface=main_surface,
-            channel=scope.phase_stream_channel,
-            min_exposure=0,
-            max_exposure=100
-        )
-        self.gfp_exposure = GFPExposureMenu(
-            main=self.main,
-            surface=main_surface,
-            channel=scope.gfp_stream_channel,
-            min_exposure=0,
-            max_exposure=100
-        )
-        self.image_focus = FocusMenu(
-            main=self.main,
-            surface=main_surface,
-            channel=scope.focus_stream_channel
-        )
-        self.update_snap = ConfirmationMenu(
-            main=self.main,
-            surface=main_surface,
-            name='Update',
-            callback=system.update_snap
-        )
-        sys_exit = ConfirmationMenu(
-            main=self.main,
-            surface=main_surface,
-            name='Shutdown',
-            callback=system.shutdown
-        )
-        # camera settings
-        self.option_focus = self.main.add_option('Focus', self.image_focus.menu)
-        self.option_exposure = self.main.add_option('Phase Exposure', self.dpc_exposure.menu)
-        self.option_gfp_exposure = self.main.add_option('GFP Exposure', self.gfp_exposure.menu)
         # system action settings
         self.main.add_option(info.get_title(), info.menu)
-        self.option_update = self.main.add_option(
-            self.update_snap.get_title(), self.update_snap.menu)
-        self.main.add_option(sys_exit.get_title(), sys_exit.menu)
         self.main.add_option('Home', pge.PYGAME_MENU_CLOSE)
-        events.fl_cooldown.register(self.overheat_protection)
-
-    @tm.threaded(daemon=True)
-    def overheat_protection(self):
-        self.option_gfp_exposure.set_disable()
-        time.sleep(FluorescenceHardware.GFP_COOLDOWN)
-        self.option_gfp_exposure.unset_disable()
 
     async def update_menu_state(self, experiment: Experiment):
         """
@@ -156,20 +101,13 @@ class MainMenu:
         :type experiment: Experiment
         """
         if experiment.active:
-            self.option_exposure.set_disable()
-            self.option_gfp_exposure.set_disable()
-            self.option_update.set_disable()
             self.option_temp.set_disable()
             self.option_co2.set_disable()
             self.option_o2.set_disable()
         else:
-            self.option_update.unset_disable()
             self.option_temp.unset_disable()
             self.option_co2.unset_disable()
             self.option_o2.unset_disable()
-            # only reenable microscope options if the hardware init is successful
-            self.option_exposure.unset_disable()
-            self.option_gfp_exposure.unset_disable()
 
     def _background_redraw(self) -> None:
         """
@@ -183,28 +121,3 @@ class MainMenu:
         if self.main._top is None:  # NoneType guard
             return
         top_menu = self.main._top._actual
-        # phase exposure mode
-        if top_menu == self.dpc_exposure.menu:
-            if not self.dpc_exposure.active:
-                self.dpc_exposure.active = True
-                # start stream asynchronously
-                self.dpc_exposure.enable_microscope()
-            self.dpc_exposure.draw_preview()
-        # focus mode
-        elif top_menu == self.image_focus.menu:
-            if not self.image_focus.active:
-                self.image_focus.active = True
-                # start stream asynchronously
-                self.image_focus.enable_microscope()
-            self.image_focus.draw_preview()
-        # gfp exposure mode
-        elif top_menu == self.gfp_exposure.menu:
-            if not self.gfp_exposure.active:
-                self.gfp_exposure.active = True
-                # start stream asynchronously
-                self.gfp_exposure.enable_microscope()
-            self.gfp_exposure.draw_preview()
-        else:
-            self.image_focus.active = False
-            self.gfp_exposure.active = False
-            self.dpc_exposure.active = False

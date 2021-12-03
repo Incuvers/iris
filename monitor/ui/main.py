@@ -133,32 +133,32 @@ class UserInterfaceController:
 
     def ui_loop(self):
         """
+        init function that renders the ui and listens for event
         main event loop for ui events
         """
+        # turn off menu
         self.dashboard_menu.main.disable()
-        self.service_menu.main.disable()
         while True:
+            # Application events
             events = pygame.event.get()
             for event in events:
-                if event.type == QUIT:
-                    self._logger.info("Exiting IRIS application")
+                if event.type == QUIT:  # type: ignore
                     pygame.display.quit()
                     pygame.font.quit()
                     pygame.quit()  # type: ignore
                     sys.exit(0)
-                elif event.type == USEREVENT:
-                    self.service_menu.main.enable()
-                elif event.type == KEYDOWN:
+                if event.type == KEYDOWN:  # type: ignore
+                    if event.key == K_DOWN:
+                        pygame.display.quit()
+                        pygame.font.quit()
+                        pygame.quit()  # type: ignore
+                        sys.exit(0)
                     if event.key in [K_RETURN, K_RIGHT, K_LEFT]:  # type: ignore
                         self.dashboard_menu.main.enable()
-            if self.service_menu.main.is_enabled():
-                self.service_menu.main.mainloop(events)
-            elif self.dashboard_menu.main.is_enabled():
-                self.dashboard_menu.main.mainloop(events)
-            else:
-                self.dashboard.redraw(self.screen)
-            pygame.display.flip()
+            self.dashboard.redraw(self.screen)
+            self.dashboard_menu.main.mainloop(events)
             self.clock.tick(uis.FPS)
+            pygame.display.flip()
 
     def _kret(self) -> None:
         """

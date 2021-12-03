@@ -26,7 +26,6 @@ from pathlib import Path
 from monitor.sys import system
 from monitor.__version__ import __version__
 from monitor.ui.menu.pgm.menu import Menu
-from monitor.environment.context_manager import ContextManager
 from monitor.ui.static.settings import UISettings as uis
 
 
@@ -70,7 +69,6 @@ class InfoMenu(object):
         self.ethernet_ip_option = self.menu.add_option(self.eth_ip_label, self.refresh_ethernet_IP)
         self.ethernet_mac_option = self.menu.add_option(
             self.eth_mac_label, self.refresh_ethernet_MAC)
-        self.hostname_option = self.menu.add_option(self.hostname_label, self.refresh_hostname)
         self.menu.add_option('Back', self._clear_and_return)
 
     def get_title(self):
@@ -82,7 +80,6 @@ class InfoMenu(object):
         self.wifi_mac_option.label = self.wifi_mac_label
         self.ethernet_ip_option.label = self.eth_ip_label
         self.ethernet_mac_option.label = self.eth_mac_label
-        self.hostname_option.label = self.hostname_label
 
     def refresh_version(self):
         self.version_option.label = __version__
@@ -102,20 +99,6 @@ class InfoMenu(object):
     def refresh_ethernet_MAC(self):
         mac_address = system.get_iface_hardware_address('eth0')
         self.ethernet_mac_option.label = f"{mac_address}"
-
-    def refresh_hostname(self):
-        hostname = self.get_device_hostname()
-        self.hostname_option.label = f"{hostname}"
-
-    def get_device_hostname(self):
-        with ContextManager() as context:
-            if Path(context.get_env('SNAP_COMMON') + '/hostname.txt').exists() is False:
-                self._logger.error("Missing hostname file. Not saved in expected path.")
-                return None
-            with open(context.get_env('SNAP_COMMON') + '/hostname.txt', 'r') as fp:
-                contents = fp.readlines()
-                hostname = context.parse_id(contents)
-        return hostname
 
     def _clear_and_return(self):
         self.reset_labels()

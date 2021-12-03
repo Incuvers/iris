@@ -24,6 +24,9 @@ Proprietary and confidential
 
 import logging
 
+import pygame
+from pygame import QUIT  # type: ignore
+
 from monitor.sys import system
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.menu.pgm import events as pge
@@ -67,38 +70,6 @@ class ServiceMenu:
         )
 
         self.heater = HeaterMenu(self.main, main_surface)
-
-        # self.temp_benchmark = ConfirmationMenu(
-        #     main=self.main,
-        #     surface=main_surface,
-        #     name='Benchmark Temp.',
-        #     callback=system.temp_benchmark,
-        #     args=()
-        # )
-
-        # self.co2_benchmark = ConfirmationMenu(
-        #     main=self.main,
-        #     surface=main_surface,
-        #     name='Benchmark CO\u2082',
-        #     callback=system.co2_benchmark,
-        #     args=()
-        # )
-
-        # self.o2_benchmark = ConfirmationMenu(
-        #     main=self.main,
-        #     surface=main_surface,
-        #     name='Benchmark O\u2082',
-        #     callback=system.o2_benchmark,
-        #     args=()
-        # )
-
-        # self.full_benchmark = ConfirmationMenu(
-        #     main=self.main,
-        #     surface=main_surface,
-        #     name='Benchmark All',
-        #     callback=system.benchmark,
-        #     args=()
-        # )
 
         self.network_reset = ConfirmationMenu(
             main=self.main,
@@ -152,7 +123,7 @@ class ServiceMenu:
             main=self.main,
             surface=main_surface,
             name='Shutdown',
-            callback=system.shutdown,
+            callback=self.send_shutdown_event,
             args=()
         )
         self.aux_heater_option = self.main.add_option(
@@ -195,3 +166,8 @@ class ServiceMenu:
 
     def _background_redraw(self):
         self.aux_heater_option.label = self.heater.get_title()
+
+    def send_shutdown_event(self):
+        # create the event
+        event = pygame.event.Event(QUIT)  # type: ignore
+        pygame.event.post(event)  # add the event to the queue
