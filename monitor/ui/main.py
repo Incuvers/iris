@@ -36,11 +36,12 @@ import sys
 import logging
 import pygame  # type: ignore
 from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT, K_DOWN, K_UP, QUIT, USEREVENT  # type: ignore
+from monitor.sys import system
 from monitor.ui.views.canvas import Canvas
 from monitor.ui.views.loading import Loading
 from monitor.ui.menu.main import MainMenu
 from monitor.ui.menu.pgm import config_controls
-from monitor.ui.menu.service import ServiceMenu
+# from monitor.ui.menu.service import ServiceMenu
 from monitor.ui.components.gauge.o2 import O2Gauge
 from monitor.ui.components.gauge.rh import RHGauge
 from monitor.ui.components.gauge.co2 import CO2Gauge
@@ -59,7 +60,6 @@ class UserInterfaceController:
 
     def __init__(self):
         self._logger = logging.getLogger(__name__)
-        # show loading screen, use events.system_status.trigger(msg="Hi mom")
         self.monitor_mode = True
         self.clock = pygame.time.Clock()
         pygame.display.init()
@@ -115,7 +115,7 @@ class UserInterfaceController:
             y_offset=uis.DEVICE_WIDGET_HEIGHT + uis.EXPERIMENT_WIDGET_HEIGHT + uis.GAUGE_WIDGET_HEIGHT
         )
         self.dashboard_menu = MainMenu(self.screen)
-        self.service_menu = ServiceMenu(self.screen)
+        # self.service_menu = ServiceMenu(self.screen)
         # Add registration to registration canvas
         self.registration.add_panel(
             Registration('', window_height, window_width),
@@ -143,16 +143,10 @@ class UserInterfaceController:
             events = pygame.event.get()
             for event in events:
                 if event.type == QUIT:  # type: ignore
-                    pygame.display.quit()
-                    pygame.font.quit()
-                    pygame.quit()  # type: ignore
-                    sys.exit(0)
+                    system.shutdown()
                 if event.type == KEYDOWN:  # type: ignore
                     if event.key == K_DOWN:
-                        pygame.display.quit()
-                        pygame.font.quit()
-                        pygame.quit()  # type: ignore
-                        sys.exit(0)
+                        system.shutdown()
                     if event.key in [K_RETURN, K_RIGHT, K_LEFT]:  # type: ignore
                         self.dashboard_menu.main.enable()
             self.dashboard.redraw(self.screen)
