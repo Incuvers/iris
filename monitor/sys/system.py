@@ -44,7 +44,7 @@ from monitor.sys import kernel
 from monitor.sys import decorators
 from monitor.cloud.mqtt import MQTT
 import monitor.imaging.constants as IC
-from monitor.amqp.client import AMQPClient
+# from monitor.amqp.client import AMQPClient
 from monitor.scheduler.imaging import ImagingScheduler
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
