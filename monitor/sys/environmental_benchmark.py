@@ -345,18 +345,18 @@ class EnvironmentBenchmark:
         """
         plt.rcParams.update({
             "lines.color": np.array(uis.INCUVERS_WHITE) / 255.,
-            "patch.edgecolor": np.array(uis.INCUVERS_DARK_GREY) / 255.,
+            "patch.edgecolor": np.array(uis.INCUVERS_GREY) / 255.,
             "text.color": np.array(uis.INCUVERS_WHITE) / 255.,
             "axes.facecolor": np.array(uis.INCUVERS_LIGHT_GREY) / 255.,
             "axes.edgecolor": np.array(uis.INCUVERS_WHITE) / 255.,
             "axes.labelcolor": np.array(uis.INCUVERS_WHITE) / 255.,
             "xtick.color": np.array(uis.INCUVERS_WHITE) / 255.,
             "ytick.color": np.array(uis.INCUVERS_WHITE) / 255.,
-            "grid.color": np.array(uis.INCUVERS_DARK_GREY) / 255.,
+            "grid.color": np.array(uis.INCUVERS_GREY) / 255.,
             "figure.facecolor": np.array(uis.INCUVERS_LIGHT_GREY) / 255.,
-            "figure.edgecolor": np.array(uis.INCUVERS_DARK_GREY) / 255.,
+            "figure.edgecolor": np.array(uis.INCUVERS_GREY) / 255.,
             "savefig.facecolor": np.array(uis.INCUVERS_LIGHT_GREY) / 255.,
-            "savefig.edgecolor": np.array(uis.INCUVERS_DARK_GREY) / 255.
+            "savefig.edgecolor": np.array(uis.INCUVERS_GREY) / 255.
         })
         dpi = 120
         fig = plt.figure(figsize=(uis.WIDTH / dpi,

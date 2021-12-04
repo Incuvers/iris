@@ -29,15 +29,22 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 import os
+import sys
 import logging
+import pygame
+import socket
+import fcntl
+import uuid
+import struct
 import numpy as np
 
+from typing import Optional
 from pathlib import Path
 from monitor.sys import kernel
 from monitor.sys import decorators
 from monitor.cloud.mqtt import MQTT
 import monitor.imaging.constants as IC
-from monitor.amqp.client import AMQPClient
+# from monitor.amqp.client import AMQPClient
 from monitor.scheduler.imaging import ImagingScheduler
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
@@ -59,9 +66,12 @@ def main():
         events.system_status.trigger(msg="Initializing modules")
         # _mqtt = MQTT()
         # RMQ Event config
-        host = os.environ['RABBITMQ_ADDR'].split(':')[0]
-        port = int(os.environ['RABBITMQ_ADDR'].split(':')[1])
-        AMQPClient(host, port)
+        # AMQPClient(
+        #     host=os.environ['RABBITMQ_ADDR'].split(':')[0],
+        #     port=int(os.environ['RABBITMQ_ADDR'].split(':')[1]),
+        #     username=os.environ['AMQP_USER'],
+        #     password=os.environ['AMQP_PASS']
+        # )
         # default irrelevant here since the init checks that ID is exported
         _mqtt = MQTT(device_id=os.environ.get('ID', ''))
         SetpointScheduler()
@@ -210,17 +220,6 @@ def reboot():
 
 @tm.threaded(daemon=True)
 @decorators.load
-def shutdown():
-    """
-    Shutdown the system using the dbus to workaround snap confinement
-    """
-    # send shutdown command through system dbus
-    events.system_status.trigger(msg="Shutting Down IRIS")
-    events.system_shutdown.trigger()
-
-
-@tm.threaded(daemon=True)
-@decorators.load
 def flash_firmware():
     """
     performs a flash using the hex file within the directory location of the below class 
@@ -332,3 +331,85 @@ def benchmark():
     Execute all benchmarks (temp, co2, o2)
     """
     events.start_benchmark.trigger(benchmark_test_type='FULL')
+
+
+def shutdown():
+    pygame.display.quit()
+    pygame.font.quit()
+    pygame.quit()  # type: ignore
+    sys.exit(0)
+
+
+def test_connection(host: str = "8.8.8.8", port: int = 53, timeout: int = 3):
+    """
+    Tests internet connectivity
+    Test intenet connectivity by checking with Google
+    Host: 8.8.8.8 (google-public-dns-a.google.com)
+    OpenPort: 53/tcp
+    Service: domain (DNS/TCP)
+    :param host: (str) the host to test connection
+    :param port: (int) the port to use
+    :param timeout:
+    """
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+    except socket.error:
+        return False
+    return True
+
+
+def get_iface_list() -> list:
+    """
+    Get the list of interfaces
+    :return:  ifaces (list) : a list of interface identifiers (string)
+    """
+    # define the path
+    iface_path = Path('/sys/class/net').resolve()
+    # parse all paths from interface path
+    iface_paths = iface_path.glob("*")
+    # if file doesnt exist we skip (ie an empty list means path was not resolved)
+    ifaces_dirs = [x for x in iface_paths if x.is_dir()]
+    ifaces = list(map(
+        lambda x: x.parts[-1], ifaces_dirs
+    ))
+    if len(ifaces) == 0:
+        _logger.warning("No interfaces found in interface path: %s", iface_path)
+    return ifaces
+
+
+def get_iface_hardware_address(_iface: str) -> Optional[str]:
+    """
+    Get the hardware (MAC) address of the given interface
+    :param iface:  iface (str) interface to return the mac off
+    :return: str colon-delimited hardware address
+    """
+    if _iface not in get_iface_list():
+        _logger.warning("invalid interface: %s", _iface)
+        return None
+    try:
+        mac = open('/sys/class/net/' + _iface + '/address').readline()
+    except OSError:
+        _hex = uuid.getnode()
+        mac = ':'.join(['{:02x}'.format((_hex >> ele) & 0xff)
+                        for ele in range(0, 8 * 6, 8)][::-1])
+    return mac[0:17]
+
+
+def get_ip_address(_iface: str) -> str:
+    """
+    Get the primary IP address
+    :return: (str) standard representation of the device's IP address
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        ip_addr = socket.inet_ntoa(
+            fcntl.ioctl(
+                sock.fileno(),
+                0x8915,  # SIOCGIFADDR
+                struct.pack('256s', bytes(_iface[:15], encoding='utf8'))
+            )[20:24]
+        )
+    except OSError:
+        ip_addr = "No IP"
+    return ip_addr

@@ -25,34 +25,20 @@ class Widget:
     Widget class.
     """
 
-    def __init__(self, width, height):
+    def __init__(self, width: int, height: int):
         """
         init
         """
         self.width = width
         self.height = height
-        self.surf = pygame.Surface((self.width, self.height))
+        self.surf = pygame.Surface((self.width, self.height))  # type: ignore
         self.font_path = uis.FONT_PATH
-        self.redraw()
 
-    def update(self):
-        """
-        Please
-        """
-        raise NotImplementedError('Please overide this before calling')
+    def update(self) -> None:
+        raise NotImplementedError
 
-    def redraw(self):
-        self.surf.fill(uis.WIDGET_EDGE)
-        pygame.draw.rect(
-            self.surf,
-            uis.WIDGET_BACKGROUND,
-            pygame.Rect(
-                uis.PADDING,
-                uis.PADDING,
-                self.width - 2 * uis.PADDING,
-                self.height - 2 * uis.PADDING
-            )
-        )
+    def redraw(self) -> None:
+        raise NotImplementedError
 
     def _x_center(self, surf):
         """

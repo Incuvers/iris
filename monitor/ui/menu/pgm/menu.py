@@ -296,9 +296,7 @@ class Menu(object):
         # Init mouse
         self._mouse = mouse_enabled
 
-    def add_option(self, element_name: str,
-                   element: Union['Menu', _events._PymenuAction, Callable],
-                   *args, **kwargs) -> button_disable.ButtonDisable:
+    def add_option(self, element_name: str, element: Union['Menu', _events._PymenuAction, Callable], *args, **kwargs):
         """
         Add option (button) to menu.
 

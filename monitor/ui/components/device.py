@@ -49,14 +49,9 @@ class Icons:
 
 
 class DeviceWidget(Widget):
-    """
-    Info widget for showing experiment details
-    """
 
-    def __init__(self, surface_height: int, surface_width: int):
-        """
-        init
-        """
+    def __init__(self, width: int, height: int):
+        super().__init__(width, height)
         self._logger = logging.getLogger(__name__)
         self.icons = Icons()
         # register events
@@ -76,10 +71,7 @@ class DeviceWidget(Widget):
         elif os.environ.get('API_BASE_URL') == "https://api.prod.incuvers.com":
             api_server = "PROD"
         self.show_status = True
-        self.width = surface_width
-        self.height = uis.IW_HEIGHT_RATIO * surface_height
         self._logger.debug("Device Widget width: %s, height: %s", self.width, self.height)
-        self.surf = pygame.Surface((self.width, self.height))  # type: ignore
         self.text_box = TextBox(
             width=100,
             height=50,
@@ -110,8 +102,6 @@ class DeviceWidget(Widget):
         self.connection_status_surf = self.icons.offline
         self.system_status_surf = self.icons.ok
         self.update_system_status(uis.STATUS_WORKING)
-        self.font_path = uis.FONT_PATH
-        self.redraw()
         self._logger.info("successfully instantiated")
 
     def load_avatar_image(self) -> pygame.Surface:  # type: ignore
@@ -210,15 +200,14 @@ class DeviceWidget(Widget):
         self.avatar_surf = avatar
 
     def redraw(self):
-        self.surf.fill(uis.WIDGET_EDGE)
         pygame.draw.rect(
             self.surf,
-            uis.WIDGET_BACKGROUND,
+            uis.INCUVERS_DARK_GREY,
             pygame.Rect(
-                uis.PADDING,
-                uis.PADDING,
-                self.width - 2 * uis.PADDING,
-                self.height - 2 * uis.PADDING
+                0,
+                0,
+                self.width,
+                self.height
             )
         )
         # avatar

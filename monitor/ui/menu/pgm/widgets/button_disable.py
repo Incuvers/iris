@@ -60,6 +60,7 @@ class ButtonDisable(Widget):
         :param args: Optional arguments for callbacks
         :param kwargs: Optional keyword-arguments for callbacks
         """
+        self._is_disabled = False
         self._font_disabled_color = (100, 100, 100)
         self._onreturn_swp = onreturn
 
@@ -67,22 +68,21 @@ class ButtonDisable(Widget):
                                             args=args, kwargs=kwargs)  # Button has no ID
         # Public attributs
         self.label = label
-        self.disabled = False
-
-    @property
-    def disabled(self) -> bool:
-        return self.__disabled
-
-    @disabled.setter
-    def disabled(self, value:bool) -> None:
-        self.__disabled = value
-        if value:
-            self._on_return = None
-        else:
-            self._on_return = self._onreturn_swp
 
     def font_disabled_color(self, color):
         self._font_disabled_color = color
+
+    def set_disable(self):
+        """ Make this widget disabled
+        """
+        self._is_disabled = True
+        self._on_return = None
+
+    def unset_disable(self):
+        """ Make this widget enabled
+        """
+        self._is_disabled = False
+        self._on_return = self._onreturn_swp
 
     def _apply_font(self):
         """
@@ -101,7 +101,7 @@ class ButtonDisable(Widget):
         """
         See upper class doc.
         """
-        if self.disabled:
+        if self._is_disabled:
             color = self._font_disabled_color
         elif self.selected:
             color = self._font_selected_color
@@ -116,17 +116,17 @@ class ButtonDisable(Widget):
         updated = False
         for event in events:
 
-            if event.type == _pygame.KEYDOWN: # type: ignore
+            if event.type == _pygame.KEYDOWN:
                 if event.key == _ctrl.MENU_CTRL_ENTER:
                     self.apply()
                     updated = True
 
-            elif self.joystick_enabled and event.type == _pygame.JOYBUTTONDOWN: # type: ignore
+            elif self.joystick_enabled and event.type == _pygame.JOYBUTTONDOWN:
                 if event.button == _locals.JOY_BUTTON_SELECT:
                     self.apply()
                     updated = True
 
-            elif self.mouse_enabled and event.type == _pygame.MOUSEBUTTONUP: # type: ignore
+            elif self.mouse_enabled and event.type == _pygame.MOUSEBUTTONUP:
                 if self._rect.collidepoint(*event.pos):
                     self.apply()
                     updated = True

@@ -15,7 +15,7 @@ services:
     image: theasp/novnc:latest
     environment:
       # Adjust to your screen size
-      - DISPLAY_WIDTH=600
+      - DISPLAY_WIDTH=576
       - DISPLAY_HEIGHT=1024
       - RUN_XTERM=no
       - RUN_FLUXBOX=no

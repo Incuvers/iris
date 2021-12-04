@@ -12,10 +12,18 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 import logging
+from typing import Callable
 from monitor.models.icb import ICB
 from monitor.ui.menu.sensors.menu import SensorMenu
-from monitor.environment.state_manager import PropertyCondition, StateManager
+from monitor.environment.state_manager import StateManager
 from monitor.environment.thread_manager import ThreadManager as tm
+
+
+def fan_setpoint_delta(func: Callable) -> Callable:
+    async def wrapper(self, sensorframe: ICB):
+        if sensorframe.fp != self.value:
+            await func(self, sensorframe)
+    return wrapper
 
 
 class FanMenu(SensorMenu[int]):
@@ -25,16 +33,10 @@ class FanMenu(SensorMenu[int]):
         super().__init__(main, surface, 'Fan Speed', 0, 100, ICB.FP_DEFAULT,
                          '{:d} %', 20, False)
         with StateManager() as state:
-            state.subscribe_property(
-                _type=ICB,
-                _property=PropertyCondition[ICB](
-                    trigger=lambda old_icb, new_icb: old_icb.fp != new_icb.fp,
-                    callback=self.update,
-                    callback_on_init=True
-                )
-            )
+            state.subscribe(ICB, self.update)
         self._logger.info("%s initialized", __name__)
 
+    @fan_setpoint_delta
     async def update(self, icb: ICB) -> None:
         """
         :param icb: [description]
