@@ -18,7 +18,6 @@ from monitor.ui.views.canvas import Canvas
 from monitor.ui.views.loading import Loading
 from monitor.ui.menu.main import MainMenu
 from monitor.ui.menu.pgm import config_controls
-from monitor.ui.menu.service import ServiceMenu
 from monitor.ui.components.gauge.o2 import O2Gauge
 from monitor.ui.components.gauge.rh import RHGauge
 from monitor.ui.components.gauge.co2 import CO2Gauge
@@ -37,11 +36,11 @@ import logging
 import pygame  # type: ignore
 from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT, K_DOWN, K_UP, QUIT, USEREVENT  # type: ignore
 from monitor.sys import system
+from monitor.ui.menu.service import ServiceMenu
 from monitor.ui.views.canvas import Canvas
 from monitor.ui.views.loading import Loading
 from monitor.ui.menu.main import MainMenu
 from monitor.ui.menu.pgm import config_controls
-# from monitor.ui.menu.service import ServiceMenu
 from monitor.ui.components.gauge.o2 import O2Gauge
 from monitor.ui.components.gauge.rh import RHGauge
 from monitor.ui.components.gauge.co2 import CO2Gauge
@@ -68,7 +67,7 @@ class UserInterfaceController:
         pygame.mouse.set_visible(False)
         self._logger.debug("Mouse visibility removed")
         self.screen = pygame.display.set_mode(
-            flags=pygame.NOFRAME | pygame.FULLSCREEN )  # type: ignore
+            flags=pygame.NOFRAME | pygame.FULLSCREEN)  # type: ignore
         self._logger.debug("Display mode set")
         # update surface values based on screen resolution
         window_height = self.screen.get_height()
@@ -115,7 +114,7 @@ class UserInterfaceController:
             y_offset=uis.DEVICE_WIDGET_HEIGHT + uis.EXPERIMENT_WIDGET_HEIGHT + uis.GAUGE_WIDGET_HEIGHT
         )
         self.dashboard_menu = MainMenu(self.screen)
-        # self.service_menu = ServiceMenu(self.screen)
+        self.service_menu = ServiceMenu(self.screen)
         # Add registration to registration canvas
         self.registration.add_panel(
             Registration('', window_height, window_width),
@@ -138,19 +137,27 @@ class UserInterfaceController:
         """
         # turn off menu
         self.dashboard_menu.main.disable()
+        self.service_menu.main.enable()
         while True:
             # Application events
             events = pygame.event.get()
             for event in events:
                 if event.type == QUIT:  # type: ignore
                     system.shutdown()
-                if event.type == KEYDOWN:  # type: ignore
+                elif event.type == USEREVENT:  # type: ignore
+                    self.service_menu.main.enable()
+                elif event.type == KEYDOWN:  # type: ignore
                     if event.key == K_DOWN:
                         system.shutdown()
-                    if event.key in [K_RETURN, K_RIGHT, K_LEFT]:  # type: ignore
+                    elif event.key in [K_RETURN, K_RIGHT, K_LEFT]:  # type: ignore
                         self.dashboard_menu.main.enable()
-            self.dashboard.redraw(self.screen)
-            self.dashboard_menu.main.mainloop(events)
+            if self.service_menu.main.is_enabled():
+                self.service_menu.main.mainloop(events)
+                self._logger.info("Hello")
+            elif self.dashboard_menu.main.is_enabled():
+                self.dashboard_menu.main.mainloop(events)
+            else:
+                self.dashboard.redraw(self.screen)
             self.clock.tick(uis.FPS)
             pygame.display.flip()
 

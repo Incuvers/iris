@@ -21,7 +21,6 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 import logging
-from pathlib import Path
 
 from monitor.sys import system
 from monitor.__version__ import __version__
@@ -29,7 +28,7 @@ from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.static.settings import UISettings as uis
 
 
-class InfoMenu(object):
+class InfoMenu:
 
     user_netplan = '/etc/netplan/60-user-netplan.yaml'
     version_label = 'Version'
@@ -54,8 +53,6 @@ class InfoMenu(object):
             color_selected=uis.COLOR_SELECTED,
             menu_height=uis.HEIGHT,
             menu_width=uis.WIDTH,
-            # If this menu closes (ESC) back to main
-            #   onclose=events.PYGAME_MENU_BACK,
             option_shadow=False,
             rect_width=4,
             title=self.get_title(),

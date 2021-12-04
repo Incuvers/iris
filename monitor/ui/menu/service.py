@@ -46,7 +46,6 @@ class ServiceMenu:
         self.main_surface = main_surface
         self.test_in_progress = False
         # keep a list of options to quickly disable them all
-        self.menu_options_to_disable = []
         self.main = Menu(
             main_surface,
             color_selected=uis.COLOR_SELECTED,
@@ -63,14 +62,12 @@ class ServiceMenu:
             onclose=pge.PYGAME_MENU_CLOSE,
             option_shadow=False,
             rect_width=4,
-            title='Service Menu',
+            title='Services',
             title_offsety=5,
             window_height=uis.HEIGHT,
             window_width=uis.WIDTH,
         )
-
         self.heater = HeaterMenu(self.main, main_surface)
-
         self.network_reset = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -78,7 +75,6 @@ class ServiceMenu:
             callback=system.reset_network,
             args=()
         )
-
         self.factory_reset = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -86,7 +82,6 @@ class ServiceMenu:
             callback=system.factory_reset,
             args=()
         )
-
         self.calibrate_dpc_background = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -94,7 +89,6 @@ class ServiceMenu:
             callback=system.calibrate_dpc,
             args=()
         )
-
         self.calibrate_co2 = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -102,7 +96,6 @@ class ServiceMenu:
             callback=system.calibrate_co2,
             args=()
         )
-
         self.firmware_flash = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -110,7 +103,6 @@ class ServiceMenu:
             callback=system.flash_firmware,
             args=()
         )
-
         self.update_snap = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
@@ -118,56 +110,35 @@ class ServiceMenu:
             callback=system.update_snap,
             args=()
         )
-
         pygame_exit = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
             name='Shutdown',
-            callback=self.send_shutdown_event,
+            callback=self.shutdown,
             args=()
         )
-        self.aux_heater_option = self.main.add_option(
-            self.heater.get_title(), self.heater.menu)
-
+        self.aux_heater_option = self.main.add_option(self.heater.get_title(), self.heater.menu)
         # self.temp_benchmark_option = self.main.add_option(self.temp_benchmark.get_title(), self.temp_benchmark.menu)
         # self.menu_options_to_disable.append(self.temp_benchmark_option)
-
         # self.co2_benchmark_option = self.main.add_option(self.co2_benchmark.get_title(), self.co2_benchmark.menu)
         # self.menu_options_to_disable.append(self.co2_benchmark_option)
-
         # self.o2_benchmark_option = self.main.add_option( self.o2_benchmark.get_title(), self.o2_benchmark.menu)
         # self.menu_options_to_disable.append(self.o2_benchmark_option)
-        #self.full_benchmark_option = self.main.add_option(self.full_benchmark.get_title(), self.full_benchmark.menu)
-
-        self.menu_options_to_disable.append(
-            self.main.add_option(self.network_reset.get_title(), self.network_reset.menu))
-        self.menu_options_to_disable.append(
-            self.main.add_option(self.factory_reset.get_title(), self.factory_reset.menu))
-        self.menu_options_to_disable.append(
-            self.main.add_option(self.calibrate_dpc_background.get_title(), self.calibrate_dpc_background.menu))
-        self.menu_options_to_disable.append(
-            self.main.add_option(self.calibrate_co2.get_title(), self.calibrate_co2.menu))
-        self.firmware_flash_option = self.main.add_option(
-            self.firmware_flash.get_title(), self.firmware_flash.menu)
-        self.menu_options_to_disable.append(self.firmware_flash_option)
-        self.update_snap_option = self.main.add_option(
-            self.update_snap.get_title(), self.update_snap.menu)
-        self.menu_options_to_disable.append(self.update_snap_option)
-        # don't make the exit option disabled-able!
+        # self.full_benchmark_option = self.main.add_option(self.full_benchmark.get_title(), self.full_benchmark.menu)
+        self.main.add_option(self.network_reset.get_title(), self.network_reset.menu)
+        self.main.add_option(self.factory_reset.get_title(), self.factory_reset.menu)
+        self.main.add_option(self.calibrate_dpc_background.get_title(),
+                             self.calibrate_dpc_background.menu)
+        self.main.add_option(self.calibrate_co2.get_title(), self.calibrate_co2.menu)
+        self.main.add_option(self.firmware_flash.get_title(), self.firmware_flash.menu)
+        self.main.add_option(self.update_snap.get_title(), self.update_snap.menu)
         self.main.add_option(pygame_exit.get_title(), pygame_exit.menu)
-
-    def disable_benchmark_options(self, benchmark_test_type):
-        for opt in self.menu_options_to_disable:
-            opt.set_disable()
-
-    def enable_benchmark_options(self):
-        for opt in self.menu_options_to_disable:
-            opt.unset_disable()
+        self.main.add_option('Return', pge.PYGAME_MENU_CLOSE)
 
     def _background_redraw(self):
         self.aux_heater_option.label = self.heater.get_title()
 
-    def send_shutdown_event(self):
+    def shutdown(self):
         # create the event
         event = pygame.event.Event(QUIT)  # type: ignore
         pygame.event.post(event)  # add the event to the queue

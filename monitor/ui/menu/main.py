@@ -34,10 +34,8 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 
-from monitor.models.experiment import Experiment
-from monitor.events.registry import Registry as events
-from monitor.environment.state_manager import StateManager
-from monitor.environment.thread_manager import ThreadManager as tm
+import pygame
+from pygame import USEREVENT  # type: ignore
 from monitor.ui.menu.info import InfoMenu
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.menu.pgm import events as pge
@@ -54,15 +52,11 @@ class MainMenu:
     """
 
     def __init__(self, main_surface):
-        # Main menu
-        with StateManager() as state:
-            state.subscribe(Experiment, self.update_menu_state)
         self.main = Menu(
             main_surface,
             color_selected=uis.COLOR_SELECTED,
-            bgfun=self._background_redraw,
             loop=False,
-            dopause=True,
+            dopause=False,
             font=uis.FONT_PATH,
             mouse_enabled=False,
             menu_color=uis.MENU_COLOR,
@@ -89,31 +83,12 @@ class MainMenu:
         self.option_o2 = self.main.add_option(self.O2.menu.get_title(), self.O2.menu)
         self.option_fan_speed = self.main.add_option(self.fan.menu.get_title(), self.fan.menu)
         info = InfoMenu(self.main, main_surface, name='System Info', update_func=lambda _: None)
+        self.main.add_option('Services', self.service)
         # system action settings
         self.main.add_option(info.get_title(), info.menu)
         self.main.add_option('Home', pge.PYGAME_MENU_CLOSE)
 
-    async def update_menu_state(self, experiment: Experiment):
-        """
-        Disable menu options when experiment is active
-
-        :param experiment: new experiment runtime instance
-        :type experiment: Experiment
-        """
-        if experiment.active:
-            self.option_temp.set_disable()
-            self.option_co2.set_disable()
-            self.option_o2.set_disable()
-        else:
-            self.option_temp.unset_disable()
-            self.option_co2.unset_disable()
-            self.option_o2.unset_disable()
-
-    def _background_redraw(self) -> None:
-        """
-        When the menu is activated, this method gets called on every menu event-loop
-        """
-        self.option_o2.label = self.O2.get_title()
-        self.option_co2.label = self.CO2.get_title()
-        self.option_temp.label = self.temp.get_title()
-        self.option_fan_speed.label = self.fan.get_title()
+    def service(self):
+        # create the event
+        event = pygame.event.Event(USEREVENT)  # type: ignore
+        pygame.event.post(event)  # add the event to the queue
