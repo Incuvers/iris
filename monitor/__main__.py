@@ -110,8 +110,8 @@ _logger = logging.getLogger(__name__)
 ThreadManager().start()
 
 # get environment variables
-base_url = os.environ.get('API_BASE_URL', default="https://api.prod.incuvers.com")
-base_path = os.environ.get('API_BASE_PATH', default="/v1")
+base_url = os.environ.get('API_BASE_URL', "https://api.prod.incuvers.com")
+base_path = os.environ.get('API_BASE_PATH', "/v1")
 
 # start ui
 uic = UserInterfaceController()
