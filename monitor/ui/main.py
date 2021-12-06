@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 User Interface Controller
@@ -136,7 +135,7 @@ class UserInterfaceController:
         """
         # turn off menu
         self.dashboard_menu.main.disable()
-        self.service_menu.main.enable()
+        self.service_menu.main.disable()
         while True:
             # Application events
             events = pygame.event.get()
@@ -152,7 +151,6 @@ class UserInterfaceController:
                         self.dashboard_menu.main.enable()
             if self.service_menu.main.is_enabled():
                 self.service_menu.main.mainloop(events)
-                self._logger.info("Hello")
             elif self.dashboard_menu.main.is_enabled():
                 self.dashboard_menu.main.mainloop(events)
             else:
