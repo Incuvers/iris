@@ -16,7 +16,7 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 import numpy as np
-from typing import Callable, Union
+from typing import Any, Callable, Dict, Union
 from monitor.events.event import Event
 from monitor.events.pipeline import Pipeline
 
@@ -33,7 +33,6 @@ class Registry:
     splash_load = Event[Callable[[bool], None]]('SPLASH_LOAD')
     system_reboot = Event[Callable[[], None]]('SYSTEM_REBOOT')
     system_shutdown = Event[Callable[[], None]]('SYSTEM_SHUTDOWN')
-    mode_switch = Event[Callable[[bool],None]]('MODE_SWITCH')
     renew_jwt = Event[Callable[[], None]]('RENEW_JWT')
     cache_thumbnail = Event[Callable[[bytes], None]]('CACHE_THUMBNAIL')
     update_progress = Event[Callable[[int], None]]('UDPATE_PROGRESS')
@@ -55,6 +54,9 @@ class Registry:
     op_mode = Event[Callable[[str, Union[float, int]], None]]('OP_MODE')
     fan_duty = Event[Callable[[str, Union[float, int]], None]]('FAN_DUTY')
     co2_calibration = Event[Callable[[], None]]('CO2_CALIBRATION')
+    # AMQP
+    amqp_publish = Event[Callable[[str, Dict[str, Any]], None]]('AMQP_PUBLISH')
+    amqp_subscribe = Event[Callable[[str, Dict[str, Any]], None]]('AMQP_SUBSCRIBE')
     # pipelines
     preview_pipeline = Pipeline("PREVIEW", 2)
     thumbnail_pipeline = Pipeline("THUMBNAIL", 2)
