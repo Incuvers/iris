@@ -42,9 +42,9 @@ from typing import Optional
 from pathlib import Path
 from monitor.sys import kernel
 from monitor.sys import decorators
-from monitor.cloud.mqtt import MQTT
+# from monitor.cloud.mqtt import MQTT
 import monitor.imaging.constants as IC
-# from monitor.amqp.client import AMQPClient
+from monitor.amqp.client import AMQPClient
 from monitor.scheduler.imaging import ImagingScheduler
 from monitor.events.registry import Registry as events
 from monitor.scheduler.setpoint import SetpointScheduler
@@ -66,14 +66,15 @@ def main():
         events.system_status.trigger(msg="Initializing modules")
         # _mqtt = MQTT()
         # RMQ Event config
-        # AMQPClient(
-        #     host=os.environ['RABBITMQ_ADDR'].split(':')[0],
-        #     port=int(os.environ['RABBITMQ_ADDR'].split(':')[1]),
-        #     username=os.environ['AMQP_USER'],
-        #     password=os.environ['AMQP_PASS']
-        # )
+        amqp_client = AMQPClient(
+            host=os.environ['RABBITMQ_ADDR'].split(':')[0],
+            port=int(os.environ['RABBITMQ_ADDR'].split(':')[1]),
+            username=os.environ.get('AMQP_USER', ''),
+            password=os.environ.get('AMQP_PASS', '')
+        )
+        amqp_client.start()
         # default irrelevant here since the init checks that ID is exported
-        _mqtt = MQTT(device_id=os.environ.get('ID', ''))
+        # _mqtt = MQTT(device_id=os.environ.get('ID', ''))
         SetpointScheduler()
         ImagingScheduler()
         # load runtime models from cache into state manager
@@ -83,7 +84,7 @@ def main():
             lab_id = device.lab_id
         _logger.info("Lab ID: %s", lab_id)
         events.system_status.trigger(msg="Loading cloud resources")
-        _mqtt.start()
+        # _mqtt.start()
     except BaseException as exc:
         _logger.exception(exc)
         events.system_status.trigger(
@@ -135,7 +136,7 @@ def factory_reset():
     # remove specific files #
     # if they do not exist then report success
     # if they exist delete them then report success
-    common = os.environ.get('COMMON', default='/etc/iris')
+    common = os.environ.get('COMMON', '/etc/iris')
 
     file_list = list(map(lambda x: common + x, file_list))
     dir_list = list(map(lambda x: common + x, dir_list))
@@ -188,7 +189,7 @@ def reset_network():
     """
     Locates the user netplan yaml file and removes it.
     """
-    monitor_netplan = os.environ.get('MONITOR_NETPLAN', default='/etc/netplan')
+    monitor_netplan = os.environ.get('MONITOR_NETPLAN', '/etc/netplan')
     # filter by all netplan files but the default 50-cloud-init template
     netplan_files = list(filter(lambda x: x != '50-cloud-init.yaml', os.listdir(monitor_netplan)))
     try:
@@ -268,7 +269,7 @@ def calibrate_dpc():
     try:
         _logger.info("Starting DPC background calibration.")
         events.system_status.trigger(msg="Performing calibration. This may take a while.")
-        background_path = os.environ.get('MONITOR_DPC', default='/etc/iris/dpc')
+        background_path = os.environ.get('MONITOR_DPC', '/etc/iris/dpc')
         if not os.path.isdir(background_path):
             os.makedirs(background_path, mode=0o777, exist_ok=True)
         # full exposure grade sweep
