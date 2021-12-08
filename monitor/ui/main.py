@@ -31,6 +31,7 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 import logging
+import time
 import pygame  # type: ignore
 from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT, K_DOWN, K_UP, QUIT, USEREVENT  # type: ignore
 from monitor.sys import system
@@ -128,6 +129,12 @@ class UserInterfaceController:
         # enable registration screen as part of the registration pipeline
         self._logger.info("Instantiation successful.")
 
+    def signal_handler(signal, frame):
+        print('Signal: {}'.format(signal))
+        time.sleep(1)
+        pygame.quit()
+        system.exit(0)
+
     def ui_loop(self):
         """
         init function that renders the ui and listens for event
@@ -141,11 +148,17 @@ class UserInterfaceController:
             events = pygame.event.get()
             for event in events:
                 if event.type == QUIT:  # type: ignore
+                    time.sleep(1)
+                    pygame.display.quit()
+                    pygame.quit()
                     system.shutdown()
                 elif event.type == USEREVENT:  # type: ignore
                     self.service_menu.main.enable()
                 elif event.type == KEYDOWN:  # type: ignore
                     if event.key == K_DOWN:
+                        time.sleep(1)
+                        pygame.display.quit()
+                        pygame.quit()
                         system.shutdown()
                     elif event.key in [K_RETURN, K_RIGHT, K_LEFT]:  # type: ignore
                         self.dashboard_menu.main.enable()
