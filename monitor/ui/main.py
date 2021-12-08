@@ -134,7 +134,6 @@ class UserInterfaceController:
 
     def signal_handler(self, signal, frame) -> None:
         print('Signal: {}'.format(signal))
-        time.sleep(1)
         system.shutdown()
 
     def ui_loop(self):

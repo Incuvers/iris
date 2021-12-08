@@ -37,7 +37,7 @@ import fcntl
 import uuid
 import struct
 import numpy as np
-
+import time
 from typing import Optional
 from pathlib import Path
 from monitor.sys import kernel
@@ -338,6 +338,7 @@ def shutdown():
     pygame.display.quit()
     pygame.font.quit()
     pygame.quit()  # type: ignore
+    time.sleep(1)
     sys.exit(0)
 
 
