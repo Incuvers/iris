@@ -32,6 +32,7 @@ Proprietary and confidential
 """
 import logging
 import time
+import signal
 import pygame  # type: ignore
 from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT, K_DOWN, K_UP, QUIT, USEREVENT  # type: ignore
 from monitor.sys import system
@@ -128,12 +129,13 @@ class UserInterfaceController:
         )
         # enable registration screen as part of the registration pipeline
         self._logger.info("Instantiation successful.")
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        signal.signal(signal.SIGINT, self.signal_handler)
 
-    def signal_handler(signal, frame):
+    def signal_handler(signal):
         print('Signal: {}'.format(signal))
         time.sleep(1)
-        pygame.quit()
-        system.exit(0)
+        system.shutdown()
 
     def ui_loop(self):
         """
@@ -149,16 +151,12 @@ class UserInterfaceController:
             for event in events:
                 if event.type == QUIT:  # type: ignore
                     time.sleep(1)
-                    pygame.display.quit()
-                    pygame.quit()
                     system.shutdown()
                 elif event.type == USEREVENT:  # type: ignore
                     self.service_menu.main.enable()
                 elif event.type == KEYDOWN:  # type: ignore
                     if event.key == K_DOWN:
                         time.sleep(1)
-                        pygame.display.quit()
-                        pygame.quit()
                         system.shutdown()
                     elif event.key in [K_RETURN, K_RIGHT, K_LEFT]:  # type: ignore
                         self.dashboard_menu.main.enable()
