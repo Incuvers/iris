@@ -128,11 +128,11 @@ class UserInterfaceController:
             y_offset=0
         )
         # enable registration screen as part of the registration pipeline
-        self._logger.info("Instantiation successful.")
         signal.signal(signal.SIGTERM, self.signal_handler)
         signal.signal(signal.SIGINT, self.signal_handler)
+        self._logger.info("Instantiation successful.")
 
-    def signal_handler(signal):
+    def signal_handler(self, signal, frame) -> None:
         print('Signal: {}'.format(signal))
         time.sleep(1)
         system.shutdown()
