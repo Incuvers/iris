@@ -90,7 +90,7 @@ class Registration(Widget):
 
     def redraw(self):
         pygame.draw.rect(self.surf,
-                         uis.WIDGET_BACKGROUND,
+                         uis.INCUVERS_DARK_GREY,
                          pygame.Rect(0,
                                      0,
                                      self.width,

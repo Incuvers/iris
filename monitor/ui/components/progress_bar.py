@@ -46,7 +46,7 @@ class ProgressBar(Widget):
         text_old = uis.INCUVERS_WHITE
         text_new = uis.INCUVERS_BLACK
         self._init_map_coefficients(
-            uis.WIDGET_BACKGROUND,
+            uis.INCUVERS_DARK_GREY,
             self.fill_color,
             text_old,
             text_new
@@ -60,7 +60,7 @@ class ProgressBar(Widget):
 
     def redraw(self):
         pygame.draw.rect(self.surf,
-                         uis.WIDGET_BACKGROUND,
+                         uis.INCUVERS_DARK_GREY,
                          pygame.Rect(0,
                                      0,
                                      self.width,
@@ -71,7 +71,7 @@ class ProgressBar(Widget):
         text_surf = font.render("{}{}%".format(self.text, round(self.percent_complete, 1)),
                                 True,
                                 uis.INCUVERS_WHITE,
-                                uis.WIDGET_BACKGROUND)
+                                uis.INCUVERS_DARK_GREY)
         self.surf.blit(text_surf, (self._x_center(text_surf), self._y_center(text_surf)))
         bar_surf = self._custom_bar()
         self.surf.blit(bar_surf, (0, 0))
