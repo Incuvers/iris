@@ -55,6 +55,7 @@ class ICB(StateModel):
         )
         # set creation timestamp
         self.timestamp = self.generate_timestamp()
+        self.initialized = False
 
     def __repr__(self) -> str:
         return "ICB: {}".format(pformat(self.serialize()))
@@ -110,6 +111,7 @@ class ICB(StateModel):
         self.hp = int(payload.get('HP', 0))
         self.fc = int(payload.get('FC', 0))
         self.fp = int(payload.get('FP', 0))
+        self.initialized = True
 
     @property
     def tc(self) -> float:
