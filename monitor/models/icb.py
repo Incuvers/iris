@@ -54,7 +54,6 @@ class ICB(StateModel):
             filename=self.FILENAME
         )
         # set creation timestamp
-        self.timestamp = self.generate_timestamp()
         self.initialized = False
 
     def __repr__(self) -> str:
@@ -89,28 +88,13 @@ class ICB(StateModel):
             'timestamp': self.timestamp,
         }
 
-    def deserialize(self, payload: Sensorframe) -> None:
+    def deserialize(self, **payload: Sensorframe) -> None:
         """
-        Perform value conversions and set property
+        Perform iterative property set 
         """
-        self.tp = self.int_to_float(int(payload.get('TP', 0)))
-        self.tc = self.int_to_float(int(payload.get('TC', 0)))
-        self.op = self.int_to_float(int(payload.get('OP', 0)))
-        self.oc = self.int_to_float(int(payload.get('OC', 0)))
-        self.cp = self.int_to_float(int(payload.get('CP', 0)))
-        self.cc = self.int_to_float(int(payload.get('CP', 0)))
-        self.rh = self.int_to_float(int(payload.get('RH', 0)))
-        self.to = self.int_to_float(int(payload.get('TO', 0)))
-        self.cm = SensorMode(int(payload.get('CM', 0)))
-        self.tm = SensorMode(int(payload.get('TM', 0)))
-        self.om = SensorMode(int(payload.get('OM', 0)))
-        self.ct = self.calibration_time_to_iso(int(payload.get('CT', 0)))
-        self.hc = bool(payload.get('HC', 0))
-        self.ctr = float(payload.get('CTR', 0.0))
-        self.iv = str(payload.get('IV', ""))
-        self.hp = int(payload.get('HP', 0))
-        self.fc = int(payload.get('FC', 0))
-        self.fp = int(payload.get('FP', 0))
+        # override local id value
+        for k, v in payload.items():
+            setattr(self, k, v)
         self.initialized = True
 
     @property
@@ -131,7 +115,6 @@ class ICB(StateModel):
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
         # Check if candidate is within the valid range
-
         if self.OPERATING_TEMPERATURE[0] > candidate or candidate > self.OPERATING_TEMPERATURE[1]:
             self._logger.error("Validation check failed for property TC setter with %s", candidate)
             return
@@ -523,15 +506,6 @@ class ICB(StateModel):
         :rtype: int
         """
         return int(val * (10 ** self.CONVERSION_RESOLUTION))
-
-    @staticmethod
-    def generate_timestamp() -> str:
-        """
-        Generate iso timestamp (UTC)
-        :return: iso format timestamp in base utc
-        :rtype: str
-        """
-        return datetime.now(timezone.utc).replace(microsecond=0).isoformat()
 
     @staticmethod
     def calibration_time_to_iso(ct: int) -> str:
