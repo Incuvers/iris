@@ -115,9 +115,9 @@ class Gauge(Widget):
         self._render_text(self.title_string, self.height - 80, font_size, title_text_color)
         font_size = 45
         if value is not None:
-            self._render_text(value, self.height - 250, font_size, gauge_text_color)
+            self._render_text(value, self.height - 260, font_size, gauge_text_color)
         font_size = 25
-        self._render_text(sp_str, self.height - 200, font_size, gauge_text_color)
+        self._render_text(sp_str, self.height - 190, font_size, gauge_text_color)
 
     def redraw(self):
         disabled, setpoint, value = self.get_state()
