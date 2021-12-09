@@ -95,7 +95,7 @@ class ExperimentWidget(Widget):
             centering=(self.width // 2, self.height // 2 - 15),
             scaling=(50, 50)
         )
-        self.thumbnail_path = os.environ.get('COMMON', default='/etc/iris') + '/thumbnail.png'
+        self.thumbnail_path = os.environ.get('COMMON', '/etc/iris') + '/thumbnail.png'
         # always render thumbnail if it exists
         if Path(self.thumbnail_path).exists():
             self.render_dpc()
