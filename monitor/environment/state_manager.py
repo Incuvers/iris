@@ -184,7 +184,7 @@ class StateManager:
         :param icb: icb runtime model
         :type icb: ICB
         """
-        sr.icb.setattrs(**icb.__dict__)
+        sr.icb.deserialize(**icb.serialize())
 
     def _load_runtime_models(self) -> None:
         """
