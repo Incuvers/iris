@@ -1,28 +1,42 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 ICB Model
 =========
 Modified: 2021-05
-
 Model object for Incuvers Control Board sensorframe
-
 Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Union
 from datetime import datetime, timezone
 from uuid import uuid4
+from enum import IntEnum
 from monitor.logs.formatter import pformat
 from monitor.models.state import StateModel
+
+Sensorframe = Dict[str, Union[str, float, int]]
+
+
+class SensorMode(IntEnum):
+    """
+    0: off
+    1: read-only
+    2: active
+    """
+    OFF = 0
+    READ = 1
+    ACTIVE = 2
+
 
 class ICB(StateModel):
     """
     This model is initialized to a default state but populated after sensorframe state is modified
     """
-    STORAGE_RESOLUTION = 1                                          # resolution of float values stored in this model
+    FILENAME = 'telemetry.json'
+    # resolution of float values stored in this model
+    STORAGE_RESOLUTION = 1
     CONVERSION_RESOLUTION = 2                                       # resolution of int/float conversions
     OPERATING_TEMPERATURE: Tuple[float, float] = (-40.0, 100.0)     # Reasonable operating temp
     OP_RANGE: Tuple[float, float] = (0.1, 21.0)                     # O2 min, max setpoint
@@ -37,26 +51,10 @@ class ICB(StateModel):
     def __init__(self) -> None:
         super().__init__(
             _id='',
-            filename='icb.json'
+            filename=self.FILENAME
         )
-        self._tc_set = False
-        self._rh_set = False
-        self._oc_set = False
-        self._cc_set = False
-        self._tp_set = False
-        self._to_set = False
-        self._cp_set = False
-        self._op_set = False
-        self._hp_set = False
-        self._fp_set = False
-        self._fc_set = False
-        self._ctr_set = False
-        self._tm_set = False
-        self._cm_set = False
-        self._om_set = False
-        self._iv_set = False
-        self._ct_set = False
-        self._timestamp_set = False
+        # set creation timestamp
+        self.timestamp = self.generate_timestamp()
 
     def __repr__(self) -> str:
         return "ICB: {}".format(pformat(self.serialize()))
@@ -64,75 +62,59 @@ class ICB(StateModel):
     def serialize(self) -> Dict[str, Any]:
         """
         Serialize object into json compatible dict
-
         :return: object attributes and values
         :rtype: Dict[str, Any]
         """
         return {
             'id': self.id,
-            'TC': self.tc,
-            'CC': self.cc,
-            'OC': self.oc,
-            'RH': self.rh,
-            'TP': self.tp,
-            'CP': self.cp,
-            'OP': self.op,
-            'TO': self.to,
-            'CT': self.ct,
-            'CTR': self.ctr,
-            'TM': self.tm,
-            'FP': self.fp,
-            'FC': self.fc,
-            'HP': self.hp,
-            'CM': self.cm,
-            'OM': self.om,
-            'IV': self.iv,
+            'tc': self.tc,
+            'cc': self.cc,
+            'oc': self.oc,
+            'rh': self.rh,
+            'tp': self.tp,
+            'cp': self.cp,
+            'op': self.op,
+            'to': self.to,
+            'ct': self.ct,
+            'ctr': self.ctr,
+            'tm': self.tm,
+            'fp': self.fp,
+            'fc': self.fc,
+            'hp': self.hp,
+            'hc': self.hc,
+            'cm': self.cm,
+            'om': self.om,
+            'iv': self.iv,
             'timestamp': self.timestamp,
         }
 
-    def deserialize(self, **kwargs) -> None:
+    def deserialize(self, payload: Sensorframe) -> None:
         """
-        Iteratively set object properties
+        Perform value conversions and set property
         """
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-
-    @property
-    def initialized(self) -> bool:
-        """
-        Check if all properties have been initialized successfully
-
-        :return: sensorframe init status
-        :rtype: bool
-        """
-        return all(
-            [
-                self._tc_set,
-                self._rh_set,
-                self._oc_set,
-                self._cc_set,
-                self._tp_set,
-                self._to_set,
-                self._cp_set,
-                self._op_set,
-                self._hp_set,
-                self._fp_set,
-                self._fc_set,
-                self._ctr_set,
-                self._tm_set,
-                self._cm_set,
-                self._om_set,
-                self._iv_set,
-                self._ct_set,
-                self._timestamp_set,
-            ]
-        )
+        self.tp = self.int_to_float(int(payload.get('TP', 0)))
+        self.tc = self.int_to_float(int(payload.get('TC', 0)))
+        self.op = self.int_to_float(int(payload.get('OP', 0)))
+        self.oc = self.int_to_float(int(payload.get('OC', 0)))
+        self.cp = self.int_to_float(int(payload.get('CP', 0)))
+        self.cc = self.int_to_float(int(payload.get('CP', 0)))
+        self.rh = self.int_to_float(int(payload.get('RH', 0)))
+        self.to = self.int_to_float(int(payload.get('TO', 0)))
+        self.cm = SensorMode(int(payload.get('CM', 0)))
+        self.tm = SensorMode(int(payload.get('TM', 0)))
+        self.om = SensorMode(int(payload.get('OM', 0)))
+        self.ct = self.calibration_time_to_iso(int(payload.get('CT', 0)))
+        self.hc = bool(payload.get('HC', 0))
+        self.ctr = float(payload.get('CTR', 0.0))
+        self.iv = str(payload.get('IV', ""))
+        self.hp = int(payload.get('HP', 0))
+        self.fc = int(payload.get('FC', 0))
+        self.fp = int(payload.get('FP', 0))
 
     @property
     def tc(self) -> float:
         """
         Get current temperature (°C) @ storage resolution
-
         :return: temperature in °C
         :rtype: float
         """
@@ -142,21 +124,21 @@ class ICB(StateModel):
     def tc(self, value: float) -> None:
         """
         Set current temperature (°C) @ storage resolution
-
         :param value: temperature in °C
         :type value: float
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
-        # range validation
-        if self.OPERATING_TEMPERATURE[0] <= candidate <= self.OPERATING_TEMPERATURE[1]:
-            self.__tc = candidate
-            self._tc_set = True
+        # Check if candidate is within the valid range
+
+        if self.OPERATING_TEMPERATURE[0] > candidate or candidate > self.OPERATING_TEMPERATURE[1]:
+            self._logger.error("Validation check failed for property TC setter with %s", candidate)
+            return
+        self.__tc = candidate
 
     @property
     def rh(self) -> float:
         """
         Get current relative humidity concentration (%) @ storage resolution
-
         :return: current relative humidity concentration in %
         :rtype: float
         """
@@ -166,21 +148,20 @@ class ICB(StateModel):
     def rh(self, value: float) -> None:
         """
         Set current relative humidity concentration (%) @ storage resolution
-
         :param value: current relative humidity concentration in %
         :type value: float
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
         # range validation
-        if 0.0 <= candidate <= 100.0:
-            self.__rh = candidate
-            self._rh_set = True
+        if 0.0 > candidate or candidate > 100.0:
+            self._logger.error("Validation check failed for property RH setter with %s", candidate)
+            return
+        self.__rh = candidate
 
     @property
     def oc(self) -> float:
         """
         Set current o2 concentration (%) @ storage resolution
-
         :return: current o2 concentration in %
         :rtype: float
         """
@@ -190,21 +171,20 @@ class ICB(StateModel):
     def oc(self, value: float) -> None:
         """
         Set current o2 concentration (%) @ storage resolution
-
         :param value: current o2 concentration in %
         :type value: float
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
         # range validation
-        if 0.0 <= candidate <= 100.0:
-            self.__oc = candidate
-            self._oc_set = True
+        if 0.0 > candidate or candidate > 100.0:
+            self._logger.error("Validation check failed for property OC setter with %s", candidate)
+            return
+        self.__oc = candidate
 
     @property
     def cc(self) -> float:
         """
         Get current co2 concentration (%) @ storage resolution
-
         :return: co2 concentration in %
         :rtype: float
         """
@@ -214,21 +194,20 @@ class ICB(StateModel):
     def cc(self, value: float) -> None:
         """
         Set current co2 concentration (%) @ storage resolution
-
         :param value: co2 concentration in %
         :type value: float
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
         # range validation
-        if 0.0 <= candidate <= 100.0:
-            self.__cc = candidate
-            self._cc_set = True
+        if 0.0 > candidate or candidate > 100.0:
+            self._logger.error("Validation check failed for property CC setter with %s", candidate)
+            return
+        self.__cc = candidate
 
     @property
     def tp(self) -> float:
         """
         Get temperature setpoint (°C) @ storage resolution
-
         :return: temperature setpoint in °C
         :rtype: float
         """
@@ -238,21 +217,20 @@ class ICB(StateModel):
     def tp(self, value: float) -> None:
         """
         Set temperature setpoint (°C) @ storage resolution
-
         :param value: temperature setpoint in °C
         :type value: float
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
         # range validation
-        if self.TP_RANGE[0] <= candidate <= self.TP_RANGE[1]:
-            self.__tp = candidate
-            self._tp_set = True
+        if self.TP_RANGE[0] > candidate or candidate > self.TP_RANGE[1]:
+            self._logger.error("Validation check failed for property TP setter with %s", candidate)
+            return
+        self.__tp = candidate
 
     @property
     def to(self) -> float:
         """
         Get temperature offset (°C) @ storage resolution
-
         :return: temperature offset in °C
         :rtype: float
         """
@@ -262,19 +240,16 @@ class ICB(StateModel):
     def to(self, value: float) -> None:
         """
         Set temperature offset (°C) @ storage resolution
-
         :param value: temperature offset in °C
         :type value: float
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
         self.__to = candidate
-        self._to_set = True
 
     @property
     def cp(self) -> float:
         """
         Get CO2 concentration setpoint (%) @ storage resolution
-
         :return: CO2 concentration setpoint as %
         :rtype: float
         """
@@ -284,21 +259,20 @@ class ICB(StateModel):
     def cp(self, value: float) -> None:
         """
         Set CO2 concentration setpoint (%) @ storage resolution
-
         :param value: CO2 concentration setpoint in %
         :type value: float
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
         # range validation
-        if self.CP_RANGE[0] <= candidate <= self.CP_RANGE[1]:
-            self.__cp = candidate
-            self._cp_set = True
+        if self.CP_RANGE[0] > candidate or candidate > self.CP_RANGE[1]:
+            self._logger.error("Validation check failed for property CP setter with %s", candidate)
+            return
+        self.__cp = candidate
 
     @property
     def op(self) -> float:
         """
         Get O2 setpoint concentration (%) @ storage resolution
-
         :return: O2 concentration setpoint as %
         :rtype: float
         """
@@ -308,21 +282,20 @@ class ICB(StateModel):
     def op(self, value: float) -> None:
         """
         Set O2 setpoint concentration in (%) @ storage resolution
-
         :param value: O2 concentration setpoint as %
         :type value: float
         """
         candidate = round(value, self.STORAGE_RESOLUTION)
         # range validation
-        if self.OP_RANGE[0] <= candidate <= self.OP_RANGE[1]:
-            self.__op = candidate
-            self._op_set = True
+        if self.OP_RANGE[0] > candidate or candidate > self.OP_RANGE[1]:
+            self._logger.error("Validation check failed for property OP setter with %s", candidate)
+            return
+        self.__op = candidate
 
     @property
     def hp(self) -> int:
         """
         Get heater duty cycle (%)
-
         :return: heater duty cycle in percent
         :rtype: int
         """
@@ -332,19 +305,36 @@ class ICB(StateModel):
     def hp(self, hp: int) -> None:
         """
         Set heater duty cycle (%)
-
         :param hp: heater duty cycle in percent
         :type hp: int
         """
-        if 0 <= hp <= 100:
-            self.__hp = hp
-            self._hp_set = True
+        if 0 > hp or hp > 100:
+            self._logger.error("Validation check failed for property HP setter with %s", hp)
+            return
+        self.__hp = hp
+
+    @property
+    def hc(self) -> bool:
+        """
+        Get heater status
+        :return: heater status
+        :rtype: bool
+        """
+        return self.__hc
+
+    @hc.setter
+    def hc(self, hc: bool) -> None:
+        """
+        Set heater status
+        :param hc: heater status
+        :type hc: bool
+        """
+        self.__hc = hc
 
     @property
     def fp(self) -> int:
         """
         Get fan duty cycle (%)
-
         :return: fan duty cycle in percent
         :rtype: int
         """
@@ -354,19 +344,19 @@ class ICB(StateModel):
     def fp(self, fp: int) -> None:
         """
         Set fan duty cycle (%)
-
         :param fp: fan duty cycle in %
         :type fp: int
         """
-        if 0 <= fp <= 100:
-            self.__fp = fp
-            self._fp_set = True
+        if 0 > fp or fp > 100:
+            self._logger.error("Validation check failed for property FP setter with %s", fp)
+            return
+
+        self.__fp = fp
 
     @property
     def fc(self) -> int:
         """
         Get current fan speed (rpm)
-
         :return: current fan speed in rpm
         :rtype: float
         """
@@ -376,19 +366,18 @@ class ICB(StateModel):
     def fc(self, fc: int) -> None:
         """
         Set current fan speed (rpm)
-
         :param fc: current fan speed in rpm
         :type fc: int
         """
-        if 0 <= fc:
-            self.__fc = fc
-            self._fc_set = True
+        if 0 > fc:
+            self._logger.error("Validation check - FC setter less than bound %s", fc)
+            return
+        self.__fc = fc
 
     @property
     def ctr(self) -> float:
         """
         Get current COZIR temperature reading (°C)
-
         :return: COZIR temperature reading in °C
         :rtype: float
         """
@@ -398,86 +387,73 @@ class ICB(StateModel):
     def ctr(self, ctr: float) -> None:
         """
         Set current COZIR temperature reading (°C)
-
         :param ctr: COZIR temperature reading (°C)
         :type ctr: float
         """
         candidate = round(ctr, 1)
-        if self.OPERATING_TEMPERATURE[0] <= candidate <= self.OPERATING_TEMPERATURE[1]:
-            self.__ctr = ctr
-            self._ctr_set = True
+        if self.OPERATING_TEMPERATURE[0] > candidate or candidate > self.OPERATING_TEMPERATURE[1]:
+            self._logger.error("Validation check failed for property CTR setter with %s", candidate)
+            return
+        self.__ctr = ctr
 
     @property
-    def tm(self) -> int:
+    def tm(self) -> SensorMode:
         """
         Get temperature controller mode (0 -> off 1 -> read-only 2 -> active)
-
         :return: temperature controller mode (0 -> off 1 -> read-only 2 -> active)
-        :rtype: int
+        :rtype: SensorMode
         """
         return self.__tm
 
     @tm.setter
-    def tm(self, tm: int) -> None:
+    def tm(self, tm: SensorMode) -> None:
         """
         Set temperature controller mode (0 -> off 1 -> read-only 2 -> active)
-
         :param tm: temperature controller mode (0 -> off 1 -> read-only 2 -> active)
-        :type tm: int
+        :type tm: SensorMode
         """
-        if tm in [0, 1, 2]:
-            self.__tm = tm
-            self._tm_set = True
+        self.__tm = tm
 
     @property
-    def cm(self) -> int:
+    def cm(self) -> SensorMode:
         """
         Get CO2 controller mode (0 -> off 1 -> read-only 2 -> active)
-
         :return: CO2 controller mode (0 -> off 1 -> read-only 2 -> active)
-        :rtype: int
+        :rtype: SensorMode
         """
         return self.__cm
 
     @cm.setter
-    def cm(self, cm: int) -> None:
+    def cm(self, cm: SensorMode) -> None:
         """
         Set CO2 controller mode (0 -> off 1 -> read-only 2 -> active)
-
         :param cm: CO2 controller mode (0 -> off 1 -> read-only 2 -> active)
         :type cm: int
         """
-        if cm in [0, 1, 2]:
-            self.__cm = cm
-            self._cm_set = True
+        self.__cm = cm
 
     @property
-    def om(self) -> int:
+    def om(self) -> SensorMode:
         """
         Get O2 controller mode (0 -> off 1 -> read-only 2 -> active)
-
         :return: o2 controller mode
-        :rtype: int
+        :rtype: SensorMode
         """
         return self.__om
 
     @om.setter
-    def om(self, om: int) -> None:
+    def om(self, om: SensorMode) -> None:
         """
         Set O2 controller mode (0 -> off 1 -> read-only 2 -> active)
-
         :param om: 0 -> off 1 -> read-only 2 -> active
-        :type om: int
+        :type om: SensorMode
         """
-        if om in [0, 1, 2]:
-            self.__om = om
-            self._om_set = True
+        self.__om = om
 
     @property
     def iv(self) -> str:
         """
         Get icb version string
-
         :return: icb git sha
         :rtype: str
         """
@@ -487,18 +463,15 @@ class ICB(StateModel):
     def iv(self, version: str) -> None:
         """
         Set icb version string
-
         :param version: icb git sha
         :type version: str
         """
         self.__iv = version
-        self._iv_set = True
 
     @property
     def timestamp(self) -> str:
         """
         Get timestamp of sensorframe reading as an ISO string
-
         :return: timestamp of previous sensorframe reading in iso format
         :rtype: str
         """
@@ -508,12 +481,10 @@ class ICB(StateModel):
     def timestamp(self, timestamp: str) -> None:
         """
         Set timestamp of sensorframe reading as an ISO string
-
         :param timestamp: timestamp of sensorframe reading in iso format
         :type timestamp: str
         """
         self.__timestamp = timestamp
-        self._timestamp_set = True
 
     @property
     def ct(self) -> str:
@@ -526,17 +497,14 @@ class ICB(StateModel):
     def ct(self, ct: str) -> None:
         """
         Set co2 calibration time in iso format (UTC)
-
         :param ct: calibration time in utc iso format
         :type ct: str
         """
         self.__ct = ct
-        self._ct_set = True
 
     def int_to_float(self, val: int) -> float:
         """
         Convert int setpoint @ conversion resolution to iris compatible float
-
         :param val: input integer value
         :type val: int
         :return: output float value
@@ -547,7 +515,6 @@ class ICB(StateModel):
     def float_to_int(self, val: float) -> int:
         """
         Convert float setpoint @ conversion resolution to icb compatible integer
-
         :param val: input float value
         :type val: float
         :return: output integer value
@@ -559,7 +526,6 @@ class ICB(StateModel):
     def generate_timestamp() -> str:
         """
         Generate iso timestamp (UTC)
-
         :return: iso format timestamp in base utc
         :rtype: str
         """
@@ -569,7 +535,6 @@ class ICB(StateModel):
     def calibration_time_to_iso(ct: int) -> str:
         """
         Convert 12hr. unit timestamp to iso datetime format in utc
-
         :param ct: 12hr. units
         :type ct: int
         :return: iso datetime
@@ -581,7 +546,6 @@ class ICB(StateModel):
     def generate_co2_calibration_time() -> int:
         """
         Generate a co2 calibration timestamp in 12hr. units
-
         :return: calibration timestamp in 12hr. units
         :rtype: int
         """
@@ -591,7 +555,6 @@ class ICB(StateModel):
     def generate_id() -> str:
         """
         Generate uuid for this instance
-
         :return: [description]
         :rtype: str
         """
