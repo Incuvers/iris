@@ -9,8 +9,8 @@ class UISettings:
     """
     # branding color names
     INCUVERS_BLACK = (0, 0, 0)
-    INCUVERS_DARK_GREY = (35, 35, 35)
-    INCUVERS_GREY = (51, 51, 51)
+    INCUVERS_DARK_GREY = (20, 20, 20)
+    INCUVERS_GREY = (35, 35, 35)
     INCUVERS_LIGHT_GREY = (66, 66, 66)
     INCUVERS_BLUE = (0, 193, 243)
     INCUVERS_WHITE = (255, 255, 255)
@@ -26,7 +26,6 @@ class UISettings:
     COLOR_SELECTED = INCUVERS_BLUE  # incuvers blue
     COLOR_ALARM = INCUVERS_ORANGE
 
-    WIDGET_BACKGROUND = INCUVERS_GREY  # just the background
     PROGRESS_BAR_FILL = INCUVERS_BLUE  # the inside of the progress bar
     TEXT_COLOR = INCUVERS_WHITE  # regular textbox text
     LINK_COLOR = INCUVERS_BLUE  # for links
