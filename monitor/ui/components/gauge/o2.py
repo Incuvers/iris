@@ -32,7 +32,8 @@ class O2Gauge(Gauge):
             state.subscribe_property(
                 _type=ICB,
                 _property=PropertyCondition[ICB](
-                    trigger=lambda old_icb, new_icb: old_icb.op != new_icb.op or old_icb.om != new_icb.om,
+                    trigger=lambda old_icb, new_icb: not old_icb.initialized or
+                    old_icb.op != new_icb.op or old_icb.om != new_icb.om,
                     callback=self.reset_loaders,
                     callback_on_init=True
                 )

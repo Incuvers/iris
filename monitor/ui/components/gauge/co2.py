@@ -32,7 +32,8 @@ class CO2Gauge(Gauge):
             state.subscribe_property(
                 _type=ICB,
                 _property=PropertyCondition[ICB](
-                    trigger=lambda old_icb, new_icb: old_icb.cp != new_icb.cp or old_icb.cm != new_icb.cm,
+                    trigger=lambda old_icb, new_icb: not old_icb.initialized or
+                    old_icb.cp != new_icb.cp or old_icb.cm != new_icb.cm,
                     callback=self.reset_loaders,
                     callback_on_init=True
                 )
