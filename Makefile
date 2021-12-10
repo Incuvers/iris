@@ -32,7 +32,7 @@ compose-up: config pull ## run docker compose stack
 	@./scripts/compose-up.sh
 
 .PHONY: compose-down
-compose-down: config pull ## teardown docker compose stack 
+compose-down: ## teardown docker compose stack 
 	@./scripts/compose-down.sh
 
 .PHONY: clean
