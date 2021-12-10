@@ -7,12 +7,12 @@ Modified: 2021-07
 Dependencies:
 -------------
 ```
-import sys
 import logging
-import pygame
-
-from monitor.sys import kernel
-from monitor.events.registry import Registry as events
+import signal
+import pygame  # type: ignore
+from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT, K_DOWN, K_UP, QUIT, USEREVENT  # type: ignore
+from monitor.sys import system
+from monitor.ui.menu.service import ServiceMenu
 from monitor.ui.views.canvas import Canvas
 from monitor.ui.views.loading import Loading
 from monitor.ui.menu.main import MainMenu
@@ -31,7 +31,6 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 import logging
-import time
 import signal
 import pygame  # type: ignore
 from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT, K_DOWN, K_UP, QUIT, USEREVENT  # type: ignore
