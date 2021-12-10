@@ -27,7 +27,7 @@ import logging
 import pygame
 from pygame import QUIT  # type: ignore
 
-from monitor.sys import system
+from monitor.sys import helper
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.menu.pgm import events as pge
 from monitor.ui.menu.sensors.heater import HeaterMenu
@@ -72,42 +72,42 @@ class ServiceMenu:
             main=self.main,
             surface=main_surface,
             name='Reset Networking',
-            callback=system.reset_network,
+            callback=helper.reset_network,
             args=()
         )
         self.factory_reset = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
             name='Factory Reset',
-            callback=system.factory_reset,
+            callback=helper.factory_reset,
             args=()
         )
         self.calibrate_dpc_background = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
             name='Calibrate Background',
-            callback=system.calibrate_dpc,
+            callback=helper.calibrate_dpc,
             args=()
         )
         self.calibrate_co2 = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
             name='Calibrate CO\u2082',
-            callback=system.calibrate_co2,
+            callback=helper.calibrate_co2,
             args=()
         )
         self.firmware_flash = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
             name='Flash Firmware',
-            callback=system.flash_firmware,
+            callback=helper.flash_firmware,
             args=()
         )
         self.update_snap = ConfirmationMenu(
             main=self.main,
             surface=main_surface,
             name='Update Software',
-            callback=system.update_snap,
+            callback=helper.update_snap,
             args=()
         )
         pygame_exit = ConfirmationMenu(

@@ -3,7 +3,7 @@ version: "3.9"
 services:
   rmq:
     container_name: rmq
-    image: ghcr.io/incuvers/rabbitmq:master
+    image: ghcr.io/incuvers/rabbitmq:arm64
     ports:
       # expose for rmq management client
       - "15672:15672"
@@ -51,17 +51,6 @@ services:
       - RABBITMQ_ADDR=rmq:5672
       - API_BASE_URL=https://api.dev.incuvers.com
       - API_BASE_PATH=/v1
-
-  # hwi:
-  #   container_name: hwi
-  #   image: ghcr.io/incuvers/hwi:master
-  #   depends_on:
-  #     - rmq
-  #   networks:
-  #     - amqp
-  #   environment:
-  #     - RABBITMQ_ADDR=rmq:5672
-
 
 networks:
   x11:

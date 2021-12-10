@@ -22,10 +22,10 @@ Proprietary and confidential
 """
 import logging
 
-from monitor.sys import system
 from monitor.__version__ import __version__
 from monitor.ui.menu.pgm.menu import Menu
 from monitor.ui.static.settings import UISettings as uis
+from monitor.sys.system import get_iface_hardware_address, get_ip_address
 
 
 class InfoMenu:
@@ -82,19 +82,19 @@ class InfoMenu:
         self.version_option.label = __version__
 
     def refresh_wifi_IP(self):
-        ip_address = system.get_ip_address('wlan0')
+        ip_address = get_ip_address('wlan0')
         self.wifi_ip_option.label = f"{ip_address}"
 
     def refresh_wifi_MAC(self):
-        mac_address = system.get_iface_hardware_address('wlan0')
+        mac_address = get_iface_hardware_address('wlan0')
         self.wifi_mac_option.label = f"{mac_address}"
 
     def refresh_ethernet_IP(self):
-        ip_address = system.get_ip_address('eth0')
+        ip_address = get_ip_address('eth0')
         self.ethernet_ip_option.label = f"{ip_address}"
 
     def refresh_ethernet_MAC(self):
-        mac_address = system.get_iface_hardware_address('eth0')
+        mac_address = get_iface_hardware_address('eth0')
         self.ethernet_mac_option.label = f"{mac_address}"
 
     def _clear_and_return(self):

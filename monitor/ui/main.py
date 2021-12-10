@@ -7,12 +7,12 @@ Modified: 2021-07
 Dependencies:
 -------------
 ```
-import sys
 import logging
-import pygame
-
-from monitor.sys import kernel
-from monitor.events.registry import Registry as events
+import signal
+import pygame  # type: ignore
+from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT, K_DOWN, K_UP, QUIT, USEREVENT  # type: ignore
+from monitor.sys import system
+from monitor.ui.menu.service import ServiceMenu
 from monitor.ui.views.canvas import Canvas
 from monitor.ui.views.loading import Loading
 from monitor.ui.menu.main import MainMenu
@@ -31,6 +31,7 @@ Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
 import logging
+import signal
 import pygame  # type: ignore
 from pygame import KEYDOWN, K_RETURN, K_RIGHT, K_LEFT, K_DOWN, K_UP, QUIT, USEREVENT  # type: ignore
 from monitor.sys import system
@@ -126,7 +127,27 @@ class UserInterfaceController:
             y_offset=0
         )
         # enable registration screen as part of the registration pipeline
+        signal.signal(signal.SIGTERM, self.signal_handler)
+        signal.signal(signal.SIGINT, self.signal_handler)
         self._logger.info("Instantiation successful.")
+
+    def __del__(self) -> None:
+        self._logger.info("Exiting IRIS application")
+        pygame.display.quit()
+        pygame.font.quit()
+        pygame.quit()  # type: ignore
+
+    def signal_handler(self, signal: int, frame) -> None:
+        """
+        Unix signal handler
+
+        :param signal: signal
+        :type signal: int
+        :param frame: signal frame
+        :type frame: frame
+        """
+        self._logger.info('Signal: %s Frame: %s', signal, frame)
+        system.shutdown()
 
     def ui_loop(self):
         """

@@ -20,4 +20,4 @@ COPY requirements.txt /app/requirements.txt
 RUN python3 -m pip install --upgrade -r pre-requirements.txt --ignore-installed
 RUN python3 -m pip install -r requirements.txt
 
-ENTRYPOINT [ "./docker/dev/entry.sh" ]
+ENTRYPOINT [ "python3", "-m", "monitor" ]

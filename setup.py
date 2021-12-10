@@ -7,10 +7,10 @@ from setuptools import find_packages, setup
 
 # meta-data.
 NAME = 'monitor'
-DESCRIPTION = 'Software for IRIS: Incuvers Real-time Imaging System. An IoT cell incubator with imaging capabilities'
-EMAIL = 'info@incuvers.com'
-AUTHOR = 'Incuvers'
-REQUIRES_PYTHON = '>=3.8.0'
+DESCRIPTION = "Software for IRIS: Incuvers Real-time Imaging System. An IoT cell incubator with imaging capabilities"
+EMAIL = "info@incuvers.com"
+AUTHOR = "Incuvers"
+REQUIRES_PYTHON = ">=3.8.0"
 VERSION = False
 
 here = os.path.abspath(os.path.dirname(__file__))
@@ -49,10 +49,6 @@ setup(
     url='https://github.com/Incuvers/iris',
     python_requires=REQUIRES_PYTHON,
     packages=find_packages(exclude=["tests"]),
-    scripts=[
-        'bin/iris',
-        'bin/wfi'
-    ],
     include_package_data=True,
     setup_requires=['wheel'],
     install_requires=REQUIRED,
@@ -60,11 +56,8 @@ setup(
         # Trove classifiers
         # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Embedded Systems',
         'Topic :: Scientific/Engineering :: Bio-Informatics',
         'Topic :: Scientific/Engineering :: Medical Science Apps',
-        'Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)',
     ],
 )

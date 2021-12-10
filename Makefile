@@ -27,9 +27,13 @@ lint: ## lint codebase using a combination of yamllint, shellcheck and flake8
 config: ## send env delta to docker dev directory
 	@./scripts/config.sh
 
-.PHONY: dev
-dev: config pull ## build development stack
-	@./scripts/dev.sh
+.PHONY: compose-up
+compose-up: config pull ## run docker compose stack 
+	@./scripts/compose-up.sh
+
+.PHONY: compose-down
+compose-down: ## teardown docker compose stack 
+	@./scripts/compose-down.sh
 
 .PHONY: clean
 clean: ## clean docker images and containers

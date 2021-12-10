@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Rabbit MQ Client
-================
+RabbitMQ AMQP Client
+====================
 Modified: 2021-10
 """
+
 import json
+import logging
 from typing import Any, Dict
 from pika import BlockingConnection, ConnectionParameters, PlainCredentials
-import logging
+from monitor.sys import system
 from monitor.events.registry import Registry as events
 from monitor.environment.thread_manager import ThreadManager as tm
 from monitor.logs.formatter import pformat
@@ -22,17 +24,13 @@ class AMQPClient:
             callback=self.publish,
             priority=1
         )
-        credentials = PlainCredentials(
-            username="microservice",
-            password="microservice",
-            erase_on_connect=True
-        )
+        system.wfi(host, port, timeout=30)
         self.connection = BlockingConnection(
             ConnectionParameters(
                 host=host,
                 port=port,
                 virtual_host='/',
-                credentials=credentials
+                credentials=PlainCredentials(username, password, erase_on_connect=True)
             )
         )
         self._logger.info("Instantiation successful.")
