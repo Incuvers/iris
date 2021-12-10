@@ -20,11 +20,11 @@ from monitor.environment.state_manager import StateManager
 class AMQPClient:
     def __init__(self, host: str, port: int, username: str, password: str) -> None:
         self._logger = logging.getLogger(__name__)
-        system.wfi(host, port, timeout=30)
         events.amqp_publish.register(
             callback=self.publish,
             priority=1
         )
+        system.wfi(host, port, timeout=30)
         self.connection = BlockingConnection(
             ConnectionParameters(
                 host=host,
