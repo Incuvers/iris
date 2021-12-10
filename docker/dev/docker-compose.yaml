@@ -52,17 +52,6 @@ services:
       - API_BASE_URL=https://api.dev.incuvers.com
       - API_BASE_PATH=/v1
 
-  # hwi:
-  #   container_name: hwi
-  #   image: ghcr.io/incuvers/hwi:master
-  #   depends_on:
-  #     - rmq
-  #   networks:
-  #     - amqp
-  #   environment:
-  #     - RABBITMQ_ADDR=rmq:5672
-
-
 networks:
   x11:
   amqp:
