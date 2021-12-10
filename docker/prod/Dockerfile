@@ -20,4 +20,4 @@ RUN DEBIAN_FRONTEND=noninteractive TZ=America/New_York \
 RUN python3 -m pip install --upgrade -r pre-requirements.txt --ignore-installed
 RUN python3 -m pip install .
 
-ENTRYPOINT [ "iris"]
+ENTRYPOINT [ "python3", "-m", "monitor"]
