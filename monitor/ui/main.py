@@ -132,8 +132,22 @@ class UserInterfaceController:
         signal.signal(signal.SIGINT, self.signal_handler)
         self._logger.info("Instantiation successful.")
 
-    def signal_handler(self, signal, frame) -> None:
-        print('Signal: {}'.format(signal))
+    def __del__(self) -> None:
+        self._logger.info("Exiting IRIS application")
+        pygame.display.quit()
+        pygame.font.quit()
+        pygame.quit()  # type: ignore
+
+    def signal_handler(self, signal: int, frame) -> None:
+        """
+        Unix signal handler
+
+        :param signal: signal
+        :type signal: int
+        :param frame: signal frame
+        :type frame: frame
+        """
+        self._logger.info('Signal: %s Frame: %s', signal, frame)
         system.shutdown()
 
     def ui_loop(self):
@@ -149,13 +163,11 @@ class UserInterfaceController:
             events = pygame.event.get()
             for event in events:
                 if event.type == QUIT:  # type: ignore
-                    time.sleep(1)
                     system.shutdown()
                 elif event.type == USEREVENT:  # type: ignore
                     self.service_menu.main.enable()
                 elif event.type == KEYDOWN:  # type: ignore
                     if event.key == K_DOWN:
-                        time.sleep(1)
                         system.shutdown()
                     elif event.key in [K_RETURN, K_RIGHT, K_LEFT]:  # type: ignore
                         self.dashboard_menu.main.enable()

@@ -19,6 +19,7 @@ Copyright © 2021 Incuvers. All rights reserved.
 Unauthorized copying of this file, via any medium is strictly prohibited
 Proprietary and confidential
 """
+
 import os
 import sys
 import logging
@@ -27,8 +28,8 @@ from pathlib import Path
 from envyaml import EnvYAML
 from configparser import ConfigParser
 from monitor.api.proxy import ApiProxy
+from monitor.sys.helper import main
 from monitor.logs.formatter import pformat
-from monitor.sys.system import main
 from monitor.environment.thread_manager import ThreadManager
 from monitor.ui.main import UserInterfaceController
 
