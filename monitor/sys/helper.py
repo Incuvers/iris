@@ -47,17 +47,6 @@ from monitor.environment.thread_manager import ThreadManager as tm
 _logger = logging.getLogger(__name__)
 
 
-def initialize_amqp() -> None:
-    # RMQ Event config
-    amqp_client = AMQPClient(
-        host=os.environ['RABBITMQ_ADDR'].split(':')[0],
-        port=int(os.environ['RABBITMQ_ADDR'].split(':')[1]),
-        username=os.environ.get('AMQP_USER', ''),
-        password=os.environ.get('AMQP_PASS', '')
-    )
-    amqp_client.start()
-
-
 @tm.threaded(daemon=True)
 @decorators.splash
 def main():
@@ -67,7 +56,14 @@ def main():
     try:
         # update system status
         events.system_status.trigger(msg="Initializing modules")
-        initialize_amqp()
+        # RMQ Event config
+        amqp_client = AMQPClient(
+            host=os.environ['RABBITMQ_ADDR'].split(':')[0],
+            port=int(os.environ['RABBITMQ_ADDR'].split(':')[1]),
+            username=os.environ.get('AMQP_USER', ''),
+            password=os.environ.get('AMQP_PASS', '')
+        )
+        amqp_client.start()
         # _mqtt = MQTT()
         # default irrelevant here since the init checks that ID is exported
         # _mqtt = MQTT(device_id=os.environ.get('ID', ''))
