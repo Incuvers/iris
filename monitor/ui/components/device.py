@@ -110,7 +110,7 @@ class DeviceWidget(Widget):
 
         :raises FileNotFoundError: if the path to the avatar img is not found 
         """
-        avatar_path_obj = Path(os.environ.get('COMMON', default='/etc/iris')
+        avatar_path_obj = Path(os.environ.get('COMMON', '/etc/iris')
                                ).joinpath('device_avatar.png')
         if avatar_path_obj.is_file():
             avatar_path = str(avatar_path_obj)

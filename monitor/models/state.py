@@ -26,7 +26,7 @@ class StateModel(ABC):
     def __init__(self, _id:_PKey, filename:str) -> None:
         self._logger = logging.getLogger(__name__)
         self.id = _id
-        cache_base_path = os.environ.get('MONITOR_CACHE', default='/etc/iris/cache')
+        cache_base_path = os.environ.get('MONITOR_CACHE', '/etc/iris/cache')
         os.makedirs(cache_base_path, mode=0o777, exist_ok=True)
         self.cache_path = f'{cache_base_path}/{filename}'
         self._logger.info("Created state model with cache path: %s", self.cache_path)

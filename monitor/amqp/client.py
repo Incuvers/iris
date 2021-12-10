@@ -14,6 +14,7 @@ from monitor.events.registry import Registry as events
 from monitor.environment.thread_manager import ThreadManager as tm
 from monitor.logs.formatter import pformat
 from monitor.amqp.conf import AMQPConf
+from monitor.environment.state_manager import StateManager
 
 
 class AMQPClient:
@@ -83,6 +84,14 @@ class AMQPClient:
                           ch, type(ch), method, type(method), properties, type(properties), body, type(body))
         payload = json.loads(body.decode('utf-8'))
         self._logger.info("Message payload: %s", pformat(payload))
+        with StateManager() as state:
+            icb = state.icb
+            icb.deserialize(**payload)
+            result = state.commit(icb, source=True)
+        if result:
+            self._logger.info("State change commit successful for telemetry amqp update event")
+        else:
+            self._logger.warning("State change commit failed on telemetry amqp update event")
 
     def digest_isr(self, ch, method, properties, body: bytes) -> None:
         self._logger.info("ch: %s:%s | method: %s:%s | properties: %s:%s | body: %s:%s",

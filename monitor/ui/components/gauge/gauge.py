@@ -85,7 +85,7 @@ class Gauge(Widget):
             title_text_color = uis.INCUVERS_WHITE
             gauge_text_color = uis.INCUVERS_BLUE
         pygame.draw.rect(self.surf,
-                         uis.WIDGET_BACKGROUND,
+                         uis.INCUVERS_GREY,
                          pygame.Rect(0,
                                      0,
                                      self.width,
@@ -93,7 +93,7 @@ class Gauge(Widget):
 
         self._circle(self.surf, circle_color, self.circle_cx, self.circle_cy,
                      self.circ_radius)
-        self._circle(self.surf, uis.INCUVERS_GREY, self.circle_cx, self.circle_cy,
+        self._circle(self.surf, uis.INCUVERS_DARK_GREY, self.circle_cx, self.circle_cy,
                      self.circ_radius - 10)
         self._circle(self.surf, uis.INCUVERS_LIGHT_GREY, self.circle_cx, self.circle_cy,
                      self.circ_radius - 20)
@@ -114,12 +114,10 @@ class Gauge(Widget):
             sp_str = 'Set: {}'.format(setpoint)
         self._render_text(self.title_string, self.height - 80, font_size, title_text_color)
         font_size = 45
-        y_offset = self.height - (self.circ_radius + uis.GAUGE_TEXT_PADDING) - font_size
         if value is not None:
-            self._render_text(value, y_offset, font_size, gauge_text_color)
+            self._render_text(value, self.height - 260, font_size, gauge_text_color)
         font_size = 25
-        y_offset = self.height - (self.circ_radius + uis.GAUGE_TEXT_PADDING) + font_size
-        self._render_text(sp_str, y_offset, font_size, gauge_text_color)
+        self._render_text(sp_str, self.height - 190, font_size, gauge_text_color)
 
     def redraw(self):
         disabled, setpoint, value = self.get_state()

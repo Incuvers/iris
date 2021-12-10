@@ -30,7 +30,8 @@ class TempGauge(Gauge):
             state.subscribe_property(
                 _type=ICB,
                 _property=PropertyCondition[ICB](
-                    trigger=lambda old_icb, new_icb: old_icb.tp != new_icb.tp or old_icb.tm != new_icb.tm,
+                    trigger=lambda old_icb, new_icb: not old_icb.initialized or 
+                    old_icb.tp != new_icb.tp or old_icb.tm != new_icb.tm,
                     callback=self.reset_loaders,
                     callback_on_init=True
                 )
