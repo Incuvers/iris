@@ -3,7 +3,7 @@ version: "3.9"
 services:
   rmq:
     container_name: rmq
-    image: ghcr.io/incuvers/rabbitmq:master
+    image: ghcr.io/incuvers/rabbitmq:arm64
     ports:
       # expose for rmq management client
       - "15672:15672"
